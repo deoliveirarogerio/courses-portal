@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use App\Enums\UserStatus;
 use App\Enums\UserType;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -48,16 +45,50 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
+            'type' => UserType::class,
         ];
     }
 
-    public function isAdmin()
+    /**
+     * Atributos com valores padrão.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'type' => 'aluno',
+        'status' => 'active',
+    ];
+
+    /**
+     * Verificar se o usuário é um admin.
+     */
+    public function isAdmin(): bool
     {
-        return $this->type === 'admin';
+        return $this->type === UserType::ADMIN || $this->type->value === 'admin';
     }
 
-    protected $casts = [
-        'status' => UserStatus::class,
-        'type' => UserType::class,
-    ];
+    /**
+     * Verificar se o usuário é um aluno.
+     */
+    public function isAluno(): bool
+    {
+        return $this->type === UserType::ALUNO || $this->type->value === 'aluno';
+    }
+
+    /**
+     * Verificar se o usuário é um instrutor.
+     */
+    public function isInstrutor(): bool
+    {
+        return $this->type === UserType::INSTRUTOR || $this->type->value === 'instrutor';
+    }
+
+    /**
+     * Verificar se o usuário está ativo.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === UserStatus::ACTIVE || $this->status->value === 'active';
+    }
 }
