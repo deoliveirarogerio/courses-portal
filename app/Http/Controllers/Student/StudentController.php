@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Course;
-use App\Models\Enrollment;
-use App\Models\Student;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
     /**
      * Create a new controller instance.
+     *
+     * @return void
      */
     public function __construct()
     {
@@ -97,24 +98,36 @@ class StudentController extends Controller
     }
 
     /**
-     * Show the student profile page.
+     * Show student profile.
      */
     public function profile()
     {
         $user = Auth::user();
 
-        // Get profile statistics
+        // Buscar ou criar perfil de estudante
+        $student = $user->student;
+        if (!$student) {
+            $student = $user->student()->create([
+                'name' => $user->name,
+                'email' => $user->email,
+                'interests' => ['Desenvolvimento Web'], // Interesse padrão
+            ]);
+        }
+
+        // Estatísticas para o perfil (implementar lógica real depois)
         $enrolledCourses = 5;
         $certificates = 2;
         $studyHours = 48;
 
-        // Additional profile data (in a real app, these would come from a profile model)
-        $phone = '(11) 99999-9999';
-        $birthDate = '15/03/1990';
-        $city = 'São Paulo, SP';
-        $profession = 'Desenvolvedor Web';
+        // Dados do perfil vindos do model student
+        $phone = $student->phone;
+        $birthDate = $student->birth_date_formatted;
+        $city = $student->city;
+        $profession = $student->profession;
 
         return view('student.profile', compact(
+            'user',
+            'student',
             'enrolledCourses',
             'certificates',
             'studyHours',
@@ -126,28 +139,59 @@ class StudentController extends Controller
     }
 
     /**
-     * Update the student profile.
+     * Update student profile.
      */
     public function updateProfile(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
-            'phone' => 'nullable|string|max:20',
-            'birth_date' => 'nullable|date',
-            'city' => 'nullable|string|max:100',
-            'profession' => 'nullable|string|max:100',
-            'bio' => 'nullable|string|max:500',
+        $user = Auth::user();
+        $student = $user->student ?: $user->student()->create([
+            'name' => $user->name,
+            'email' => $user->email,
         ]);
 
-        $user = Auth::user();
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date|before:today',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'profession' => 'nullable|string|max:100',
+            'bio' => 'nullable|string|max:500',
+            'interests' => 'nullable|array',
+            'experience_level' => 'nullable|in:iniciante,intermediario,avancado',
+            'preferred_time' => 'nullable|in:manha,tarde,noite,madrugada',
+            'weekly_goal_hours' => 'nullable|integer|min:1|max:168',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Atualizar dados do usuário
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
         ]);
 
-        // In a real application, you would update additional profile fields
-        // in a separate profile model or user profile table
+        // Atualizar dados do estudante
+        $student->update([
+            'name' => $request->name, // Manter sincronizado
+            'email' => $request->email, // Manter sincronizado
+            'phone' => $request->phone,
+            'birth_date' => $request->birth_date,
+            'city' => $request->city,
+            'state' => $request->state,
+            'profession' => $request->profession,
+            'bio' => $request->bio,
+            'interests' => $request->interests ?? [],
+            'experience_level' => $request->experience_level ?? 'iniciante',
+            'preferred_time' => $request->preferred_time ?? 'noite',
+            'weekly_goal_hours' => $request->weekly_goal_hours ?? 20,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -156,26 +200,77 @@ class StudentController extends Controller
     }
 
     /**
-     * Change the student password.
+     * Update avatar.
+     */
+    public function updateAvatar(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Por favor, envie uma imagem válida (máximo 2MB).'
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $student = $user->student ?: $user->student()->create([
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
+
+        // Remover avatar anterior se existir
+        if ($student->avatar && Storage::disk('public')->exists('avatars/' . $student->avatar)) {
+            Storage::disk('public')->delete('avatars/' . $student->avatar);
+        }
+
+        // Salvar novo avatar
+        $file = $request->file('avatar');
+        $fileName = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+        $file->storeAs('avatars', $fileName, 'public');
+
+        $student->update(['avatar' => $fileName]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Avatar atualizado com sucesso!',
+            'avatar_url' => $student->avatar_url
+        ]);
+    }
+
+    /**
+     * Change password.
      */
     public function changePassword(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'current_password' => 'required',
             'new_password' => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required' => 'A senha atual é obrigatória.',
+            'new_password.required' => 'A nova senha é obrigatória.',
+            'new_password.min' => 'A nova senha deve ter pelo menos 8 caracteres.',
+            'new_password.confirmed' => 'A confirmação da nova senha não confere.',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
         $user = Auth::user();
 
-        // Verify current password
         if (!Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Senha atual incorreta.'
-            ], 400);
+                'message' => 'A senha atual está incorreta.'
+            ], 422);
         }
 
-        // Update password
         $user->update([
             'password' => Hash::make($request->new_password)
         ]);
@@ -265,14 +360,22 @@ class StudentController extends Controller
     }
 
     /**
-     * Update notification preferences.
+     * Update notifications preferences.
      */
     public function updateNotifications(Request $request)
     {
         $user = Auth::user();
+        $student = $user->student ?: $user->student()->create([
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
 
-        // In a real application, you would save these preferences
-        // to a user_preferences table or similar
+        $student->update([
+            'email_notifications' => $request->has('email_notifications'),
+            'course_reminders' => $request->has('course_reminders'),
+            'progress_updates' => $request->has('progress_updates'),
+            'marketing_emails' => $request->has('marketing_emails'),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -286,9 +389,17 @@ class StudentController extends Controller
     public function updatePrivacy(Request $request)
     {
         $user = Auth::user();
+        $student = $user->student ?: $user->student()->create([
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
 
-        // In a real application, you would save these settings
-        // to a user_settings table or similar
+        $student->update([
+            'public_profile' => $request->has('public_profile'),
+            'show_progress' => $request->has('show_progress'),
+            'show_certificates' => $request->has('show_certificates'),
+            'allow_messages' => $request->has('allow_messages'),
+        ]);
 
         return response()->json([
             'success' => true,

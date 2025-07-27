@@ -7,6 +7,7 @@ use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -61,6 +62,14 @@ class User extends Authenticatable
     ];
 
     /**
+     * Relacionamento com Student (um-para-um)
+     */
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    /**
      * Verificar se o usuário é um admin.
      */
     public function isAdmin(): bool
@@ -90,5 +99,21 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return $this->status === UserStatus::ACTIVE || $this->status->value === 'active';
+    }
+
+    /**
+     * Obter ou criar perfil de estudante
+     */
+    public function getOrCreateStudentProfile(): Student
+    {
+        if (!$this->student) {
+            return $this->student()->create([
+                'name' => $this->name,
+                'email' => $this->email,
+                'interests' => ['Desenvolvimento Web'], // Interesse padrão
+            ]);
+        }
+
+        return $this->student;
     }
 }

@@ -20,44 +20,49 @@
     </div>
 </div>
 
+<!-- Alerts -->
+<div id="alertContainer"></div>
+
 <!-- Profile Overview -->
 <div class="row mb-4">
     <div class="col-lg-4 mb-4">
         <div class="card stats-card">
             <div class="card-body text-center">
                 <div class="position-relative d-inline-block mb-3">
-                    <div class="user-avatar mx-auto" style="width: 120px; height: 120px; font-size: 3rem;">
-                        {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                    <div class="user-avatar mx-auto" style="width: 120px; height: 120px; font-size: 3rem; background-image: url('{{ $student->avatar_url }}'); background-size: cover; background-position: center;">
+                        @if(!$student->avatar)
+                            {{ substr($user->name ?? 'U', 0, 1) }}
+                        @endif
                     </div>
-                    <button class="btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle" 
+                    <button class="btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle"
                             style="width: 35px; height: 35px;" data-bs-toggle="modal" data-bs-target="#avatarModal">
                         <i class="bi bi-camera"></i>
                     </button>
                 </div>
-                <h4 class="fw-bold mb-1">{{ auth()->user()->name ?? 'Nome do Usuário' }}</h4>
-                <p class="text-muted mb-3">{{ auth()->user()->email ?? 'email@exemplo.com' }}</p>
-                
+                <h4 class="fw-bold mb-1">{{ $user->name ?? 'Nome do Usuário' }}</h4>
+                <p class="text-muted mb-3">{{ $user->email ?? 'email@exemplo.com' }}</p>
+
                 <div class="row text-center mb-3">
                     <div class="col-4">
-                        <h5 class="fw-bold mb-0">{{ $enrolledCourses ?? 5 }}</h5>
+                        <h5 class="fw-bold mb-0">{{ $enrolledCourses ?? 0 }}</h5>
                         <small class="text-muted">Cursos</small>
                     </div>
                     <div class="col-4">
-                        <h5 class="fw-bold mb-0">{{ $certificates ?? 2 }}</h5>
+                        <h5 class="fw-bold mb-0">{{ $certificates ?? 0 }}</h5>
                         <small class="text-muted">Certificados</small>
                     </div>
                     <div class="col-4">
-                        <h5 class="fw-bold mb-0">{{ $studyHours ?? 48 }}h</h5>
+                        <h5 class="fw-bold mb-0">{{ $studyHours ?? 0 }}h</h5>
                         <small class="text-muted">Estudadas</small>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <span class="badge bg-primary fs-6 px-3 py-2">
-                        <i class="bi bi-star me-1"></i>Nível Intermediário
+                        <i class="bi bi-star me-1"></i>{{ $student->experience_level_label ?? 'Nível Iniciante' }}
                     </span>
                 </div>
-                
+
                 <div class="d-grid">
                     <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                         <i class="bi bi-pencil me-2"></i>Editar Perfil
@@ -66,7 +71,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-lg-8">
         <!-- Personal Information -->
         <div class="card stats-card mb-4">
@@ -77,32 +82,32 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Nome Completo</label>
-                        <p class="fw-semibold mb-0">{{ auth()->user()->name ?? 'João da Silva Santos' }}</p>
+                        <p class="fw-semibold mb-0">{{ $user->name ?? 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">E-mail</label>
-                        <p class="fw-semibold mb-0">{{ auth()->user()->email ?? 'joao@exemplo.com' }}</p>
+                        <p class="fw-semibold mb-0">{{ $user->email ?? 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Telefone</label>
-                        <p class="fw-semibold mb-0">{{ $phone ?? '(11) 99999-9999' }}</p>
+                        <p class="fw-semibold mb-0">{{ $student->phone ?? 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Data de Nascimento</label>
-                        <p class="fw-semibold mb-0">{{ $birthDate ?? '15/03/1990' }}</p>
+                        <p class="fw-semibold mb-0">{{ $student->birth_date_formatted ?? 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Cidade</label>
-                        <p class="fw-semibold mb-0">{{ $city ?? 'São Paulo, SP' }}</p>
+                        <p class="fw-semibold mb-0">{{ $student->city ?? 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Profissão</label>
-                        <p class="fw-semibold mb-0">{{ $profession ?? 'Desenvolvedor Web' }}</p>
+                        <p class="fw-semibold mb-0">{{ $student->profession ?? 'Não informado' }}</p>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Learning Preferences -->
         <div class="card stats-card">
             <div class="card-header bg-transparent border-0 pb-0">
@@ -113,25 +118,26 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Áreas de Interesse</label>
                         <div class="d-flex flex-wrap gap-1">
-                            @php
-                                $interests = ['Desenvolvimento Web', 'JavaScript', 'Laravel', 'UI/UX Design', 'Mobile'];
-                            @endphp
-                            @foreach($interests as $interest)
-                                <span class="badge bg-primary">{{ $interest }}</span>
-                            @endforeach
+                            @if($student->interests && count($student->interests) > 0)
+                                @foreach($student->interests as $interest)
+                                    <span class="badge bg-primary">{{ $interest }}</span>
+                                @endforeach
+                            @else
+                                <span class="text-muted">Nenhum interesse definido</span>
+                            @endif
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Nível de Experiência</label>
-                        <p class="fw-semibold mb-0">Intermediário</p>
+                        <p class="fw-semibold mb-0">{{ $student->experience_level_label ?? 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Horário Preferido</label>
-                        <p class="fw-semibold mb-0">Noite (18h - 22h)</p>
+                        <p class="fw-semibold mb-0">{{ $student->preferred_time_label ?? 'Não informado' }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Meta Semanal</label>
-                        <p class="fw-semibold mb-0">20 horas de estudo</p>
+                        <p class="fw-semibold mb-0">{{ $student->weekly_goal_hours ?? 20 }} horas de estudo</p>
                     </div>
                 </div>
             </div>
@@ -150,61 +156,75 @@
                 <div class="row">
                     <div class="col-lg-6">
                         <h6 class="fw-semibold mb-3">Notificações</h6>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-                            <label class="form-check-label" for="emailNotifications">
-                                Notificações por e-mail
-                            </label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="courseReminders" checked>
-                            <label class="form-check-label" for="courseReminders">
-                                Lembretes de aulas
-                            </label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="progressUpdates">
-                            <label class="form-check-label" for="progressUpdates">
-                                Atualizações de progresso
-                            </label>
-                        </div>
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="marketingEmails">
-                            <label class="form-check-label" for="marketingEmails">
-                                E-mails promocionais
-                            </label>
-                        </div>
+                        <form id="notificationsForm">
+                            @csrf
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications"
+                                       {{ $student->email_notifications ? 'checked' : '' }}>
+                                <label class="form-check-label" for="email_notifications">
+                                    Notificações por e-mail
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="course_reminders" name="course_reminders"
+                                       {{ $student->course_reminders ? 'checked' : '' }}>
+                                <label class="form-check-label" for="course_reminders">
+                                    Lembretes de aulas
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="progress_updates" name="progress_updates"
+                                       {{ $student->progress_updates ? 'checked' : '' }}>
+                                <label class="form-check-label" for="progress_updates">
+                                    Atualizações de progresso
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="marketing_emails" name="marketing_emails"
+                                       {{ $student->marketing_emails ? 'checked' : '' }}>
+                                <label class="form-check-label" for="marketing_emails">
+                                    E-mails promocionais
+                                </label>
+                            </div>
+                        </form>
                     </div>
-                    
+
                     <div class="col-lg-6">
                         <h6 class="fw-semibold mb-3">Privacidade</h6>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="publicProfile" checked>
-                            <label class="form-check-label" for="publicProfile">
-                                Perfil público
-                            </label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="showProgress" checked>
-                            <label class="form-check-label" for="showProgress">
-                                Mostrar progresso nos cursos
-                            </label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="showCertificates">
-                            <label class="form-check-label" for="showCertificates">
-                                Mostrar certificados
-                            </label>
-                        </div>
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="allowMessages">
-                            <label class="form-check-label" for="allowMessages">
-                                Permitir mensagens de outros alunos
-                            </label>
-                        </div>
+                        <form id="privacyForm">
+                            @csrf
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="public_profile" name="public_profile"
+                                       {{ $student->public_profile ? 'checked' : '' }}>
+                                <label class="form-check-label" for="public_profile">
+                                    Perfil público
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="show_progress" name="show_progress"
+                                       {{ $student->show_progress ? 'checked' : '' }}>
+                                <label class="form-check-label" for="show_progress">
+                                    Mostrar progresso nos cursos
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="show_certificates" name="show_certificates"
+                                       {{ $student->show_certificates ? 'checked' : '' }}>
+                                <label class="form-check-label" for="show_certificates">
+                                    Mostrar certificados
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="allow_messages" name="allow_messages"
+                                       {{ $student->allow_messages ? 'checked' : '' }}>
+                                <label class="form-check-label" for="allow_messages">
+                                    Permitir mensagens de outros alunos
+                                </label>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-12">
                         <hr>
@@ -218,70 +238,6 @@
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Activity -->
-<div class="row">
-    <div class="col-12">
-        <div class="card stats-card">
-            <div class="card-header bg-transparent border-0 pb-0">
-                <h5 class="fw-bold mb-0">Atividade Recente</h5>
-            </div>
-            <div class="card-body">
-                @php
-                    $activities = [
-                        [
-                            'icon' => 'bi-check-circle',
-                            'color' => 'success',
-                            'title' => 'Aula concluída',
-                            'description' => 'Autenticação JWT - Laravel Avançado',
-                            'time' => '2 horas atrás'
-                        ],
-                        [
-                            'icon' => 'bi-award',
-                            'color' => 'warning',
-                            'title' => 'Certificado emitido',
-                            'description' => 'Fundamentos do JavaScript',
-                            'time' => '1 dia atrás'
-                        ],
-                        [
-                            'icon' => 'bi-person-gear',
-                            'color' => 'info',
-                            'title' => 'Perfil atualizado',
-                            'description' => 'Informações pessoais alteradas',
-                            'time' => '3 dias atrás'
-                        ],
-                        [
-                            'icon' => 'bi-bookmark',
-                            'color' => 'primary',
-                            'title' => 'Curso iniciado',
-                            'description' => 'Design UI/UX Completo',
-                            'time' => '5 dias atrás'
-                        ]
-                    ];
-                @endphp
-                
-                <div class="row">
-                    @foreach($activities as $activity)
-                    <div class="col-lg-6 mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="bg-{{ $activity['color'] }} bg-opacity-10 rounded-circle p-2">
-                                    <i class="bi {{ $activity['icon'] }} text-{{ $activity['color'] }}"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="fw-semibold mb-1">{{ $activity['title'] }}</h6>
-                                <p class="text-muted small mb-1">{{ $activity['description'] }}</p>
-                                <small class="text-muted">{{ $activity['time'] }}</small>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
                 </div>
             </div>
         </div>
@@ -302,34 +258,87 @@
             </div>
             <div class="modal-body">
                 <form id="editProfileForm">
+                    @csrf
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="editName" class="form-label">Nome Completo</label>
-                            <input type="text" class="form-control" id="editName" value="{{ auth()->user()->name ?? 'João da Silva Santos' }}">
+                            <label for="name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ $user->name }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editEmail" class="form-label">E-mail</label>
-                            <input type="email" class="form-control" id="editEmail" value="{{ auth()->user()->email ?? 'joao@exemplo.com' }}">
+                            <label for="email" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ $user->email }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editPhone" class="form-label">Telefone</label>
-                            <input type="tel" class="form-control" id="editPhone" value="(11) 99999-9999">
+                            <label for="phone" class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ $student->phone }}">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editBirthDate" class="form-label">Data de Nascimento</label>
-                            <input type="date" class="form-control" id="editBirthDate" value="1990-03-15">
+                            <label for="birth_date" class="form-label">Data de Nascimento</label>
+                            <input type="date" class="form-control" id="birth_date" name="birth_date"
+                                   value="{{ $student->birth_date ? $student->birth_date->format('Y-m-d') : '' }}">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editCity" class="form-label">Cidade</label>
-                            <input type="text" class="form-control" id="editCity" value="São Paulo, SP">
+                            <label for="city" class="form-label">Cidade</label>
+                            <input type="text" class="form-control" id="city" name="city" value="{{ $student->city }}">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="editProfession" class="form-label">Profissão</label>
-                            <input type="text" class="form-control" id="editProfession" value="Desenvolvedor Web">
+                            <label for="state" class="form-label">Estado</label>
+                            <input type="text" class="form-control" id="state" name="state" value="{{ $student->state }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="profession" class="form-label">Profissão</label>
+                            <input type="text" class="form-control" id="profession" name="profession" value="{{ $student->profession }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="experience_level" class="form-label">Nível de Experiência</label>
+                            <select class="form-select" id="experience_level" name="experience_level">
+                                <option value="iniciante" {{ $student->experience_level == 'iniciante' ? 'selected' : '' }}>Iniciante</option>
+                                <option value="intermediario" {{ $student->experience_level == 'intermediario' ? 'selected' : '' }}>Intermediário</option>
+                                <option value="avancado" {{ $student->experience_level == 'avancado' ? 'selected' : '' }}>Avançado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="preferred_time" class="form-label">Horário Preferido</label>
+                            <select class="form-select" id="preferred_time" name="preferred_time">
+                                <option value="manha" {{ $student->preferred_time == 'manha' ? 'selected' : '' }}>Manhã (6h - 12h)</option>
+                                <option value="tarde" {{ $student->preferred_time == 'tarde' ? 'selected' : '' }}>Tarde (12h - 18h)</option>
+                                <option value="noite" {{ $student->preferred_time == 'noite' ? 'selected' : '' }}>Noite (18h - 22h)</option>
+                                <option value="madrugada" {{ $student->preferred_time == 'madrugada' ? 'selected' : '' }}>Madrugada (0h - 6h)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="weekly_goal_hours" class="form-label">Meta Semanal (horas)</label>
+                            <input type="number" class="form-control" id="weekly_goal_hours" name="weekly_goal_hours"
+                                   value="{{ $student->weekly_goal_hours }}" min="1" max="168">
                         </div>
                         <div class="col-12 mb-3">
-                            <label for="editBio" class="form-label">Biografia</label>
-                            <textarea class="form-control" id="editBio" rows="3" placeholder="Conte um pouco sobre você..."></textarea>
+                            <label for="bio" class="form-label">Biografia</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Conte um pouco sobre você...">{{ $student->bio }}</textarea>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="interests" class="form-label">Áreas de Interesse</label>
+                            <div class="row">
+                                @php
+                                    $availableInterests = [
+                                        'Desenvolvimento Web', 'JavaScript', 'Laravel', 'UI/UX Design',
+                                        'Mobile', 'Python', 'Marketing Digital', 'Design Gráfico',
+                                        'Data Science', 'Inteligência Artificial'
+                                    ];
+                                    $userInterests = $student->interests ?? [];
+                                @endphp
+                                @foreach($availableInterests as $interest)
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="interests[]"
+                                                   value="{{ $interest }}" id="interest_{{ $loop->index }}"
+                                                   {{ in_array($interest, $userInterests) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="interest_{{ $loop->index }}">
+                                                {{ $interest }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -337,6 +346,41 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="saveProfile()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Upload Modal -->
+<div class="modal fade" id="avatarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-camera me-2"></i>Alterar Avatar
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="avatarForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="text-center mb-3">
+                        <div class="user-avatar mx-auto" style="width: 120px; height: 120px; font-size: 3rem; background-image: url('{{ $student->avatar_url }}'); background-size: cover; background-position: center;">
+                            @if(!$student->avatar)
+                                {{ substr($user->name ?? 'U', 0, 1) }}
+                            @endif
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Escolher Nova Foto</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*" required>
+                        <div class="form-text">Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 2MB</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="uploadAvatar()">Upload Avatar</button>
             </div>
         </div>
     </div>
@@ -354,17 +398,18 @@
             </div>
             <div class="modal-body">
                 <form id="changePasswordForm">
+                    @csrf
                     <div class="mb-3">
-                        <label for="currentPassword" class="form-label">Senha Atual</label>
-                        <input type="password" class="form-control" id="currentPassword" required>
+                        <label for="current_password" class="form-label">Senha Atual</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
                     </div>
                     <div class="mb-3">
-                        <label for="newPassword" class="form-label">Nova Senha</label>
-                        <input type="password" class="form-control" id="newPassword" required>
+                        <label for="new_password" class="form-label">Nova Senha</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
                     </div>
                     <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirmar Nova Senha</label>
-                        <input type="password" class="form-control" id="confirmPassword" required>
+                        <label for="new_password_confirmation" class="form-label">Confirmar Nova Senha</label>
+                        <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
                     </div>
                 </form>
             </div>
@@ -391,7 +436,7 @@
                 <div class="mb-3">
                     <label for="profileUrl" class="form-label">Link do Perfil</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="profileUrl" value="https://portal.com/profile/joao-silva" readonly>
+                        <input type="text" class="form-control" id="profileUrl" value="https://portal.com/profile/{{ $user->id }}" readonly>
                         <button class="btn btn-outline-secondary" type="button" onclick="copyProfileUrl()">
                             <i class="bi bi-copy"></i>
                         </button>
@@ -416,81 +461,173 @@
 
 @section('scripts')
 <script>
+// Função para salvar perfil
 function saveProfile() {
-    // Simulate saving profile
-    const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
-    modal.hide();
-    showToast('Perfil atualizado com sucesso!', 'success');
+    const formData = new FormData(document.getElementById('editProfileForm'));
+
+    fetch('{{ route("student.profile.update") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+            modal.hide();
+            showAlert('Perfil atualizado com sucesso!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Erro ao atualizar perfil. Verifique os dados informados.', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Erro ao atualizar perfil.', 'danger');
+    });
 }
 
+// Função para upload de avatar
+function uploadAvatar() {
+    const formData = new FormData(document.getElementById('avatarForm'));
+
+    fetch('{{ route("student.profile.avatar") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('avatarModal'));
+            modal.hide();
+            showAlert('Avatar atualizado com sucesso!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert(data.message || 'Erro ao fazer upload do avatar.', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Erro ao fazer upload do avatar.', 'danger');
+    });
+}
+
+// Função para alterar senha
 function changePassword() {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    if (!currentPassword || !newPassword || !confirmPassword) {
-        showToast('Preencha todos os campos', 'warning');
-        return;
-    }
-    
-    if (newPassword !== confirmPassword) {
-        showToast('As senhas não coincidem', 'danger');
-        return;
-    }
-    
-    // Simulate password change
-    const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
-    modal.hide();
-    showToast('Senha alterada com sucesso!', 'success');
+    const formData = new FormData(document.getElementById('changePasswordForm'));
+
+    fetch('{{ route("student.profile.change-password") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+            modal.hide();
+            showAlert('Senha alterada com sucesso!', 'success');
+            document.getElementById('changePasswordForm').reset();
+        } else {
+            showAlert(data.message || 'Erro ao alterar senha.', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Erro ao alterar senha.', 'danger');
+    });
 }
 
+// Função para mostrar alertas
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    alertContainer.appendChild(alert);
+
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 5000);
+}
+
+// Salvar configurações automaticamente
+document.querySelectorAll('#notificationsForm .form-check-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const formData = new FormData(document.getElementById('notificationsForm'));
+
+        fetch('{{ route("student.profile.notifications") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Configuração de notificação salva!', 'success');
+            }
+        });
+    });
+});
+
+document.querySelectorAll('#privacyForm .form-check-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const formData = new FormData(document.getElementById('privacyForm'));
+
+        fetch('{{ route("student.profile.privacy") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Configuração de privacidade salva!', 'success');
+            }
+        });
+    });
+});
+
+// Funções de compartilhamento
 function copyProfileUrl() {
     const profileUrl = document.getElementById('profileUrl');
     profileUrl.select();
     document.execCommand('copy');
-    showToast('Link copiado para a área de transferência!', 'success');
+    showAlert('Link copiado para a área de transferência!', 'success');
 }
 
 function shareOnLinkedIn() {
-    const url = encodeURIComponent('https://portal.com/profile/joao-silva');
+    const url = encodeURIComponent('https://portal.com/profile/{{ $user->id }}');
     const text = encodeURIComponent('Confira meu perfil no Portal de Cursos!');
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${text}`, '_blank');
 }
 
 function shareOnTwitter() {
-    const url = encodeURIComponent('https://portal.com/profile/joao-silva');
+    const url = encodeURIComponent('https://portal.com/profile/{{ $user->id }}');
     const text = encodeURIComponent('Confira meu perfil no Portal de Cursos!');
     window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
 }
 
 function shareOnWhatsApp() {
-    const text = encodeURIComponent('Confira meu perfil no Portal de Cursos: https://portal.com/profile/joao-silva');
+    const text = encodeURIComponent('Confira meu perfil no Portal de Cursos: https://portal.com/profile/{{ $user->id }}');
     window.open(`https://wa.me/?text=${text}`, '_blank');
 }
-
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    toast.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
-    }, 3000);
-}
-
-// Save settings automatically
-document.querySelectorAll('.form-check-input').forEach(input => {
-    input.addEventListener('change', function() {
-        showToast('Configuração salva automaticamente', 'info');
-    });
-});
 </script>
 @endsection

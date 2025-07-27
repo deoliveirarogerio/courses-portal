@@ -58,6 +58,7 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => 'auth']
 
     // Profile management
     Route::post('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/avatar', [StudentController::class, 'updateAvatar'])->name('profile.avatar'); // Nova rota
     Route::post('/profile/change-password', [StudentController::class, 'changePassword'])->name('profile.change-password');
     Route::post('/profile/notifications', [StudentController::class, 'updateNotifications'])->name('profile.notifications');
     Route::post('/profile/privacy', [StudentController::class, 'updatePrivacy'])->name('profile.privacy');

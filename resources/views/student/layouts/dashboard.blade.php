@@ -25,13 +25,20 @@
                     </div>
 
                     <!-- User Info -->
+                    @php
+                        $student = auth()->user()->student ?? auth()->user()->getOrCreateStudentProfile();
+                    @endphp
+
                     <div class="p-4 text-center border-bottom border-white border-opacity-25">
-                        <div class="user-avatar mx-auto mb-2">
-                            {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                        <div class="user-avatar mx-auto mb-2" style="background-image: url('{{ $student->avatar_url }}'); background-size: cover; background-position: center;">
+                            @if(!$student->avatar)
+                                {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                            @endif
                         </div>
                         <h6 class="text-white mb-1">{{ auth()->user()->name ?? 'Usuário' }}</h6>
                         <small class="text-white-50">{{ auth()->user()->email ?? 'email@exemplo.com' }}</small>
                     </div>
+
 
                     <!-- Navigation -->
                     <nav class="nav flex-column py-3">
@@ -101,13 +108,21 @@
 
                             <!-- User Menu -->
                             <div class="nav-item dropdown">
+                                @php
+                                    $userStudent = auth()->user()->student;
+                                    $avatarUrl = $userStudent ? $userStudent->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name ?? 'U') . '&background=0d6efd&color=fff&size=80';
+                                @endphp
+
                                 <a class="nav-link d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                    <div class="user-avatar me-2">
-                                        {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                                    <div class="user-avatar me-2" style="background-image: url('{{ $avatarUrl }}'); background-size: cover; background-position: center;">
+                                        @if(!$userStudent?->avatar)
+                                            {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                                        @endif
                                     </div>
                                     <span class="d-none d-lg-inline">{{ auth()->user()->name ?? 'Usuário' }}</span>
                                     <i class="bi bi-chevron-down ms-2"></i>
                                 </a>
+
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="{{ route('student.profile') }}">
                                         <i class="bi bi-person me-2"></i>Meu Perfil
