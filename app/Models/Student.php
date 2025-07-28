@@ -84,6 +84,13 @@ class Student extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    public function enrolledCourses()
+    {
+        return $this->belongsToMany(\App\Models\Course::class, 'enrollments')
+            ->withPivot(['progress', 'last_accessed', 'next_lesson', 'is_favorite', 'has_certificate'])
+            ->withTimestamps();
+    }
+
     /**
      * Accessor para avatar com fallback
      */

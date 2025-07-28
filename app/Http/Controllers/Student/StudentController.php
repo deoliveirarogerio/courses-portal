@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -42,18 +43,6 @@ class StudentController extends Controller
         ));
     }
 
-    /**
-     * Show the student courses page.
-     */
-    public function courses()
-    {
-        $user = Auth::user();
-
-        // In a real application, you would fetch the user's enrolled courses
-        // $courses = $user->enrollments()->with('course')->get();
-
-        return view('student.courses');
-    }
 
     /**
      * Show the student certificates page.
@@ -433,4 +422,101 @@ class StudentController extends Controller
             ]
         ]);
     }
+
+// Adicionar estes métodos ao StudentController existente
+
+
+
+/**
+ * Show student courses.
+ */
+public function courses()
+{
+    $user = Auth::user();
+    $student = $user->getOrCreateStudentProfile();
+
+    // IDs dos cursos já matriculados
+    $enrolledCourseIds = $student->enrolledCourses()->pluck('courses.id')->toArray();
+
+    // Cursos disponíveis (ativos e com vagas), excluindo os já matriculados
+    $availableCourses = \App\Models\Course::active()
+        ->withAvailableSlots()
+        ->whereNotIn('id', $enrolledCourseIds)
+        ->latest()
+        ->get();
+
+    // Cursos em destaque (também não mostrar se já matriculado)
+    $featuredCourses = \App\Models\Course::active()
+        ->featured()
+        ->withAvailableSlots()
+        ->whereNotIn('id', $enrolledCourseIds)
+        ->take(3)
+        ->get();
+
+    // Cursos matriculados (join com enrollments)
+    $enrolledCourses = $student->enrolledCourses()->with(['students'])->get();
+
+    return view('student.courses', compact(
+        'user',
+        'student',
+        'availableCourses',
+        'enrolledCourses',
+        'featuredCourses'
+    ));
+}
+
+/**
+ * Show course details for student.
+ */
+public function courseDetail($id)
+{
+    $user = Auth::user();
+    $student = $user->getOrCreateStudentProfile();
+    $course = \App\Models\Course::with(['modules.lessons'])->findOrFail($id);
+
+    // Verificar se já está matriculado
+    $isEnrolled = $student->enrolledCourses()->where('course_id', $id)->exists();
+
+    // Buscar módulos e aulas reais
+    $modules = $course->modules;
+
+    return view('student.course-detail', compact(
+        'user',
+        'student',
+        'course',
+        'isEnrolled',
+        'modules'
+    ));
+}
+
+/**
+ * Enroll student in course.
+ */
+public function enrollCourse(Request $request, $id)
+{
+    $user = Auth::user();
+    $student = $user->getOrCreateStudentProfile();
+    $course = Course::findOrFail($id);
+
+    if (!$course->isRegistrationOpen()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'As inscrições para este curso não estão abertas.'
+        ], 422);
+    }
+
+    // Efetua a matrícula se não existir ainda
+    if (!$student->enrolledCourses()->where('course_id', $id)->exists()) {
+        $student->enrolledCourses()->attach($course->id, [
+            'progress' => 0,
+            'last_accessed' => now(),
+        ]);
+    }
+
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Matrícula realizada com sucesso!'
+    ]);
+}
 }

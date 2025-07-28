@@ -52,9 +52,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => 'auth'], function () {
     Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
     Route::get('/courses', [StudentController::class, 'courses'])->name('courses');
+    Route::post('/courses/{id}/enroll', [StudentController::class, 'enrollCourse'])->name('courses.enroll');
     Route::get('/certificates', [StudentController::class, 'certificates'])->name('certificates');
     Route::get('/progress', [StudentController::class, 'progress'])->name('progress');
     Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
+    Route::get('/courses/{id}/detail', [StudentController::class, 'courseDetail'])->name('course.detail');
 
     // Profile management
     Route::post('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
