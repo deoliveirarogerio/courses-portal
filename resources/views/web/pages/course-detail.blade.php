@@ -20,7 +20,7 @@
                 <p class="lead text-white-75 mb-4">{{ $course->description }}</p>
                 
                 <div class="d-flex flex-wrap gap-3 mb-4">
-                    @if($course->status === 'sim')
+                    @if($course->status === 'ativo')
                         <span class="badge bg-success fs-6 px-3 py-2">
                             <i class="bi bi-check-circle me-1"></i>Disponível
                         </span>
@@ -50,7 +50,7 @@
                             R$ {{ number_format($course->price, 2, ',', '.') }}
                         </div>
                         
-                        @if($course->status === 'sim' && $course->remaining_slots > 0)
+                        @if($course->status === 'ativo' && $course->remaining_slots > 0)
                             <div class="d-grid gap-2">
                                 <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#enrollModal">
                                     <i class="bi bi-cart-plus me-2"></i>Inscrever-se Agora

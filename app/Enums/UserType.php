@@ -2,30 +2,20 @@
 
 namespace App\Enums;
 
-enum UserType: string
+class UserType
 {
-    case ALUNO = 'aluno';
-    case INSTRUTOR = 'instrutor';
-    case ADMIN = 'admin';
-    case USER = 'user'; // Compatibilidade com dados existentes
-
-    public function label(): string
-    {
-        return match($this) {
-            self::ALUNO => 'Aluno',
-            self::INSTRUTOR => 'Instrutor',
-            self::ADMIN => 'Administrador',
-            self::USER => 'Usuário',
-        };
-    }
+    const ALUNO = 'aluno';
+    const INSTRUTOR = 'instrutor';
+    const ADMIN = 'admin';
+    const USER = 'user'; // Compatibilidade com dados existentes
 
     public static function getValues(): array
     {
         return [
-            self::ALUNO->value,
-            self::INSTRUTOR->value,
-            self::ADMIN->value,
-            self::USER->value,
+            self::ALUNO,
+            self::INSTRUTOR,
+            self::ADMIN,
+            self::USER,
         ];
     }
 }

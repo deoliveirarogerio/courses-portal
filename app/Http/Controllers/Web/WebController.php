@@ -4,14 +4,16 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\Course;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class WebController extends Controller
 {
     public function index()
     {
-        $courses = Course::where('status', 1)->orderBy('created_at', 'desc')->get();
-        return view('web.pages.home', compact('courses'));
+        $courses = Course::where('status', 'ativo')->orderBy('created_at', 'desc')->get();
+        $instructors = User::where('type', 'instrutor')->get();
+        return view('web.pages.home', compact('courses', 'instructors'));
     }
 
     public function about()

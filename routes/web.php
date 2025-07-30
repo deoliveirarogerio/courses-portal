@@ -48,8 +48,8 @@ Route::middleware('guest')->group(function () {
 // Logout route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Student dashboard routes (protected by auth middleware)
-Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => 'auth'], function () {
+// Student dashboard routes (protected by auth and user type middleware)
+Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth', 'check.user.type:aluno']], function () {
     Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
     Route::get('/courses', [StudentController::class, 'courses'])->name('courses');
     Route::post('/courses/{id}/enroll', [StudentController::class, 'enrollCourse'])->name('courses.enroll');
@@ -78,3 +78,20 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => 'auth']
 Route::get('/home', function () {
     return redirect()->route('student.dashboard');
 })->middleware('auth')->name('home');
+
+// Admin routes (accessible by admin and instructor)
+Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'check.admin.access']], function () {
+    Route::get('/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // Courses
+    Route::resource('courses', App\Http\Controllers\Admin\CourseController::class);
+    
+    // Modules
+    Route::resource('modules', App\Http\Controllers\Admin\ModuleController::class);
+    
+    // Lessons
+    Route::resource('lessons', App\Http\Controllers\Admin\LessonController::class);
+    
+    // Users
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+});

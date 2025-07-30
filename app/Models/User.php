@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'status',
         'type',
+        'avatar'
     ];
 
     /**
@@ -46,8 +47,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'status' => UserStatus::class,
-            'type' => UserType::class,
         ];
     }
 
@@ -69,12 +68,19 @@ class User extends Authenticatable
         return $this->hasOne(Student::class);
     }
 
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'enrollments')
+            ->withPivot(['progress', 'last_accessed', 'next_lesson', 'is_favorite', 'has_certificate'])
+            ->withTimestamps();
+    }
+
     /**
      * Verificar se o usuário é um admin.
      */
     public function isAdmin(): bool
     {
-        return $this->type === UserType::ADMIN || $this->type->value === 'admin';
+        return $this->type === UserType::ADMIN || $this->type === 'admin';
     }
 
     /**
@@ -82,7 +88,7 @@ class User extends Authenticatable
      */
     public function isAluno(): bool
     {
-        return $this->type === UserType::ALUNO || $this->type->value === 'aluno';
+        return $this->type === UserType::ALUNO || $this->type === 'aluno';
     }
 
     /**
@@ -90,7 +96,7 @@ class User extends Authenticatable
      */
     public function isInstrutor(): bool
     {
-        return $this->type === UserType::INSTRUTOR || $this->type->value === 'instrutor';
+        return $this->type === UserType::INSTRUTOR || $this->type === 'instrutor';
     }
 
     /**
@@ -98,7 +104,7 @@ class User extends Authenticatable
      */
     public function isActive(): bool
     {
-        return $this->status === UserStatus::ACTIVE || $this->status->value === 'active';
+        return $this->status === UserStatus::ACTIVE || $this->status === 'active';
     }
 
     /**

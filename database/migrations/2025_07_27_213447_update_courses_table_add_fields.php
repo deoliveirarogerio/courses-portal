@@ -17,7 +17,6 @@ return new class extends Migration
             $table->text('curriculum')->nullable()->after('image'); // Currículo do curso
             $table->string('duration')->nullable()->after('curriculum'); // Ex: "40 horas"
             $table->enum('difficulty_level', ['iniciante', 'intermediario', 'avancado'])->default('iniciante')->after('duration');
-            $table->string('instructor')->nullable()->after('difficulty_level');
             $table->json('tags')->nullable()->after('instructor'); // Tags/categorias
             $table->boolean('is_featured')->default(false)->after('tags'); // Curso em destaque
             $table->integer('total_students')->default(0)->after('is_featured'); // Total de alunos matriculados

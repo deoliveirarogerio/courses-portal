@@ -11,13 +11,14 @@ class Course extends Model
     use HasFactory;
 
     protected $fillable = [
+        'instructor_id',
         'title',
         'description',
         'image',
         'curriculum',
         'duration',
         'difficulty_level',
-        'instructor',
+        'instructor_id',
         'tags',
         'price',
         'status',
@@ -55,6 +56,11 @@ class Course extends Model
             ->withTimestamps();
     }
 
+    public function instructor()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function modules()
     {
         return $this->hasMany(Module::class)->orderBy('order');
@@ -77,12 +83,16 @@ class Course extends Model
      */
     public function getDifficultyLevelLabelAttribute(): string
     {
-        return match($this->difficulty_level) {
-            'iniciante' => 'Iniciante',
-            'intermediario' => 'Intermediário',
-            'avancado' => 'Avançado',
-            default => 'Não informado'
-        };
+        switch($this->difficulty_level) {
+            case 'iniciante':
+                return 'Iniciante';
+            case 'intermediario':
+                return 'Intermediário';
+            case 'avancado':
+                return 'Avançado';
+            default:
+                return 'Não informado';
+        }
     }
 
     /**
@@ -90,12 +100,16 @@ class Course extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
-            'ativo' => 'Ativo',
-            'inativo' => 'Inativo',
-            'rascunho' => 'Rascunho',
-            default => 'Não informado'
-        };
+        switch($this->status) {
+            case 'ativo':
+                return 'Ativo';
+            case 'inativo':
+                return 'Inativo';
+            case 'rascunho':
+                return 'Rascunho';
+            default:
+                return 'Não informado';
+        }
     }
 
     /**
@@ -103,12 +117,16 @@ class Course extends Model
      */
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
-            'ativo' => 'success',
-            'inativo' => 'danger',
-            'rascunho' => 'warning',
-            default => 'secondary'
-        };
+        switch($this->status) {
+            case 'ativo':
+                return 'success';
+            case 'inativo':
+                return 'danger';
+            case 'rascunho':
+                return 'warning';
+            default:
+                return 'secondary';
+        }
     }
 
     /**

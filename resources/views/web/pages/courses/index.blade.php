@@ -87,10 +87,18 @@
                      data-title="{{ strtolower($course->title ?? 'Curso de Exemplo') }}">
                     <div class="card h-100 shadow-sm border-0 course-item">
                         <div class="position-relative">
-                            <img src="{{ $course->image ?? asset('web/img/webp/no-image-available-1by1.webp') }}"
+                            @if (!empty($course->image))
+                                <img src="{{ 'storage/courses/'. $course->image }}"
                                  class="card-img-top"
                                  alt="{{ $course->title ?? 'Curso' }}"
                                  style="height: 200px; object-fit: cover;">
+                            @else
+                                <img src="{{ asset('/web/img/webp/no-image-available-1by1.webp') }}"
+                                 class="card-img-top"
+                                 alt="{{ $course->title ?? 'Curso' }}"
+                                 style="height: 200px; object-fit: cover;">
+                            @endif
+                            
                             <div class="position-absolute top-0 end-0 m-2">
                                 @if(($course->price ?? 0) == 0)
                                     <span class="badge bg-success">Gratuito</span>
@@ -118,12 +126,22 @@
                             <div class="row align-items-center mb-3">
                                 <div class="col">
                                     <div class="d-flex align-items-center">
-                                        <img src="{{ $course->instructor->avatar ?? 'https://via.placeholder.com/30x30/667eea/ffffff?text=I' }}"
-                                             class="rounded-circle me-2"
-                                             width="30"
-                                             height="30"
-                                             alt="Instrutor">
-                                        <small class="text-muted">{{ $course->instructor->name ?? 'Prof. Silva' }}</small>
+                                        @if($course->instructor && $course->instructor->avatar)
+                                            <img src="{{ asset('storage/' . $course->instructor->avatar) }}" 
+                                                 alt="Avatar do Instrutor" 
+                                                 class="rounded-circle me-2" 
+                                                 style="width: 32px; height: 32px; object-fit: cover;"
+                                                 onerror="this.src='{{ asset('images/default-instructor.svg') }}'">
+                                        @else
+                                            <img src="{{ asset('images/default-instructor.svg') }}" 
+                                                 alt="Avatar do Instrutor" 
+                                                 class="rounded-circle me-2" 
+                                                 style="width: 32px; height: 32px; object-fit: cover;">
+                                        @endif
+                                        <div>
+                                            <small class="text-muted d-block">Instrutor</small>
+                                            <small class="fw-medium">{{ $course->instructor->name ?? 'Prof. Silva' }}</small>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-auto">

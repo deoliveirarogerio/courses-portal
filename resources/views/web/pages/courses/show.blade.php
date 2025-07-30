@@ -91,7 +91,7 @@
 
                 <div class="col-lg-4">
                     <div class="card shadow-lg border-0" style="border-radius: 20px;">
-                        <img src="{{ $course->thumbnail ?? asset('web/img/webp/no-image-available-1by1.webp') }}"
+                        <img src="{{ $course->image_url ?? asset('web/img/webp/no-image-available-1by1.webp') }}"
                              class="card-img-top"
                              alt="{{ $course->title ?? 'Curso' }}"
                              style="height: 250px; object-fit: cover; border-radius: 20px 20px 0 0;">
@@ -124,9 +124,15 @@
                                     <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#enrollModal">
                                         <i class="bi bi-cart-plus me-2"></i>Matricular-se Agora
                                     </button>
-                                    <button class="btn btn-outline-primary">
-                                        <i class="bi bi-play-circle me-2"></i>Aula Demonstrativa
-                                    </button>
+                                    @if($demoLesson)
+                                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#demoModal">
+                                            <i class="bi bi-play-circle me-2"></i>Aula Demonstrativa
+                                        </button>
+                                    @else
+                                        <button class="btn btn-outline-secondary" disabled>
+                                            <i class="bi bi-play-circle me-2"></i>Sem Aula Demonstrativa
+                                        </button>
+                                    @endif
                                 @else
                                     @if(isset($isEnrolled) && $isEnrolled)
                                         <a href="{{ route('student.courses') }}" class="btn btn-success btn-lg">
@@ -137,9 +143,15 @@
                                             <i class="bi bi-cart-plus me-2"></i>Matricular-se Agora
                                         </button>
                                     @endif
-                                    <button class="btn btn-outline-primary">
-                                        <i class="bi bi-play-circle me-2"></i>Aula Demonstrativa
-                                    </button>
+                                    @if($demoLesson)
+                                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#demoModal">
+                                            <i class="bi bi-play-circle me-2"></i>Aula Demonstrativa
+                                        </button>
+                                    @else
+                                        <button class="btn btn-outline-secondary" disabled>
+                                            <i class="bi bi-play-circle me-2"></i>Sem Aula Demonstrativa
+                                        </button>
+                                    @endif
                                 @endguest
                             </div>
 
@@ -327,7 +339,7 @@
                                                             <div class="d-flex align-items-center py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
                                                                 <i class="bi bi-play-circle text-primary me-3"></i>
                                                                 <div class="flex-grow-1">
-                                                                    <span>{{ $lesson }}</span>
+                                                                    <span>{{ $lesson['title'] }}</span>
                                                                 </div>
                                                                 <small class="text-muted">{{ rand(5, 15) }} min</small>
                                                             </div>
@@ -349,7 +361,7 @@
 
                                     <div class="row align-items-center mb-4">
                                         <div class="col-md-3 text-center">
-                                            <img src="{{ $course->instructor->avatar ?? asset('web/img/webp/no-avatar-available.webp') }}"
+                                            <img src="{{ Storage::url('public/' . $course->instructor->avatar) }}"
                                                  class="rounded-circle mb-3"
                                                  width="150"
                                                  height="150"
@@ -543,50 +555,35 @@
                         <div class="card-body">
                             <h5 class="fw-bold mb-3">Cursos Relacionados</h5>
 
-                            @php
-                                $relatedCourses = [
-                                    [
-                                        'title' => 'JavaScript Avançado',
-                                        'price' => 197.90,
-                                        'rating' => 4.7,
-                                        'image' => env('APP_URL') . '/web/img/webp/no-image-available-1by1.webp'
-                                    ],
-                                    [
-                                        'title' => 'Vue.js Completo',
-                                        'price' => 247.90,
-                                        'rating' => 4.6,
-                                        'image' => env('APP_URL') . '/web/img/webp/no-image-available-1by1.webp'
-                                    ],
-                                    [
-                                        'title' => 'Node.js e APIs',
-                                        'price' => 297.90,
-                                        'rating' => 4.8,
-                                        'image' => env('APP_URL') . '/web/img/webp/no-image-available-1by1.webp'
-                                    ]
-                                ];
-                            @endphp
-
                             @foreach($relatedCourses as $relatedCourse)
-                                <div class="d-flex align-items-center mb-3 {{ !$loop->last ? 'border-bottom pb-3' : '' }}">
-                                    <img src="{{ $relatedCourse['image'] }}"
+                                <div class="d-flex align-items-center mb-3">
+                                    @if($relatedCourse->image_url)
+                                    <img src="{{ $relatedCourse->image_url }}"
                                          class="rounded me-3"
                                          width="80"
                                          height="60"
-                                         alt="{{ $relatedCourse['title'] }}">
+                                         alt="{{ $relatedCourse->title }}">
+                                         @elseif($relatedCourse->image_url == null)
+                                         <img src="{{ asset('web/img/webp/no-image-available-1by1.webp') }}"
+                                         class="rounded me-3"
+                                         width="80"
+                                         height="60"
+                                         alt="{{ $relatedCourse->title }}">
+                                         @endif
                                     <div class="flex-grow-1">
-                                        <h6 class="fw-semibold mb-1">{{ $relatedCourse['title'] }}</h6>
+                                        <h6 class="fw-semibold mb-1">{{ $relatedCourse->title }}</h6>
                                         <div class="text-warning mb-1">
                                             @for($i = 1; $i <= 5; $i++)
-                                                @if($i <= $relatedCourse['rating'])
+                                                @if($i <= $relatedCourse->rating)
                                                     <i class="bi bi-star-fill small"></i>
                                                 @else
                                                     <i class="bi bi-star small"></i>
                                                 @endif
                                             @endfor
-                                            <small class="text-muted ms-1">({{ $relatedCourse['rating'] }})</small>
+                                            <small class="text-muted ms-1">({{ $relatedCourse->rating }})</small>
                                         </div>
                                         <p class="text-primary fw-bold mb-0">
-                                            R$ {{ number_format($relatedCourse['price'], 2, ',', '.') }}
+                                            R$ {{ number_format($relatedCourse->price, 2, ',', '.') }}
                                         </p>
                                     </div>
                                 </div>
@@ -612,8 +609,9 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <img src="{{ $course->thumbnail ?? asset('web/img/webp/no-image-available-1by1.webp') }}"
-                                 class="img-fluid rounded mb-3"
+                            <img src="{{ $course->image_url }}"
+                                 class="mb-3"
+                                 style="max-width: 370px; height: 250px; object-fit: cover;"
                                  alt="{{ $course->title ?? 'Curso' }}">
                         </div>
                         <div class="col-md-6">
@@ -655,6 +653,112 @@
             </div>
         </div>
     </div>
+
+    <!-- Demo Lesson Modal -->
+    @if($demoLesson)
+        <div class="modal fade" id="demoModal" tabindex="-1" aria-labelledby="demoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="demoModalLabel">
+                            <i class="bi bi-play-circle me-2"></i>Aula Demonstrativa: {{ $demoLesson->title }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="row g-0">
+                            <!-- Video Player -->
+                            <div class="col-lg-8">
+                                <div class="ratio ratio-16x9">
+                                    @php
+                                        $videoUrl = $demoLesson->video_url;
+                                        $isYouTube = $videoUrl && (strpos($videoUrl, 'youtube.com') !== false || strpos($videoUrl, 'youtu.be') !== false);
+                                        
+                                        if ($isYouTube) {
+                                            preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)?\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $videoUrl, $matches);
+                                            $youtubeId = $matches[1] ?? '';
+                                            $embedUrl = "https://www.youtube.com/embed/{$youtubeId}?rel=0&modestbranding=1&showinfo=0";
+                                        }
+                                    @endphp
+                                    
+                                    @if($videoUrl)
+                                        @if($isYouTube && !empty($youtubeId))
+                                            <iframe 
+                                                class="w-100 p-3" 
+                                                src="{{ $embedUrl }}" 
+                                                title="Aula Demonstrativa"
+                                                frameborder="0" 
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                                allowfullscreen>
+                                            </iframe>
+                                        @else
+                                            <video class="w-100" controls>
+                                                <source src="{{ $videoUrl }}" type="video/mp4">
+                                                Seu navegador não suporta o elemento de vídeo.
+                                            </video>
+                                        @endif
+                                    @else
+                                        <!-- Fallback video -->
+                                        <video class="w-100" controls>
+                                            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                                            Seu navegador não suporta o elemento de vídeo.
+                                        </video>
+                                    @endif
+                                </div>
+                            </div>
+                            
+                            <!-- Lesson Info -->
+                            <div class="col-lg-4">
+                                <div class="p-4">
+                                    <div class="mb-3">
+                                        <span class="badge bg-success mb-2">
+                                            <i class="bi bi-unlock me-1"></i>Aula Gratuita
+                                        </span>
+                                        <h6 class="fw-bold">{{ $demoLesson->title }}</h6>
+                                        @if($demoLesson->duration)
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>{{ $demoLesson->duration }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                    
+                                    @if($demoLesson->description)
+                                        <div class="mb-3">
+                                            <h6 class="fw-bold">Descrição:</h6>
+                                            <p class="text-muted small">{{ $demoLesson->description }}</p>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold">Módulo:</h6>
+                                        <p class="text-muted small mb-0">{{ $demoLesson->module->title ?? 'Não definido' }}</p>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#enrollModal" data-bs-dismiss="modal">
+                                            <i class="bi bi-cart-plus me-2"></i>Matricular-se Agora
+                                        </button>
+                                        <small class="text-center text-muted">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Esta é apenas uma amostra do conteúdo
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i>Fechar
+                        </button>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#enrollModal" data-bs-dismiss="modal">
+                            <i class="bi bi-cart-plus me-2"></i>Quero me Matricular
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <style>
         .course-item {
@@ -710,6 +814,27 @@
                     }, 150);
                 });
             });
+            
+            // Parar vídeo ao fechar modal de demonstração
+            const demoModal = document.getElementById('demoModal');
+            if (demoModal) {
+                demoModal.addEventListener('hidden.bs.modal', function() {
+                    // Parar vídeo do YouTube (iframe)
+                    const iframe = demoModal.querySelector('iframe');
+                    if (iframe) {
+                        const src = iframe.src;
+                        iframe.src = '';
+                        iframe.src = src; // Recarrega o iframe, parando o vídeo
+                    }
+                    
+                    // Parar vídeo HTML5
+                    const video = demoModal.querySelector('video');
+                    if (video) {
+                        video.pause();
+                        video.currentTime = 0; // Volta para o início
+                    }
+                });
+            }
         });
     </script>
 @endsection

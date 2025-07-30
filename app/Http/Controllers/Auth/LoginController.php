@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Enums\UserType;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
     use AuthenticatesUsers;
 
     /**
-     * Onde redirecionar usuários após o login.
+     * Onde redirecionar usuários após o login (fallback).
      *
      * @var string
      */
@@ -44,17 +47,41 @@ class LoginController extends Controller
      */
     protected function redirectTo()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        if ($user && $user->type === 'aluno') { // Corrigido: 'type' ao invés de 'tipo_usuario'
-            return '/student/dashboard';
-        } elseif ($user && $user->type === 'instrutor') {
-            return '/instructor/dashboard';
-        } elseif ($user && $user->type === 'admin') {
-            return '/admin/dashboard';
+        if (!$user) {
+            return '/login';
         }
 
-        return '/home';
+        Log::info('LoginController: Redirecionando usuário baseado no tipo', [
+            'user_id' => $user->id,
+            'user_type' => $user->type,
+            'user_email' => $user->email
+        ]);
+
+        // Usar constantes do enum para maior consistência
+        switch ($user->type) {
+            case UserType::ADMIN:
+            case 'admin':
+                return '/admin/dashboard';
+            
+            case UserType::ALUNO:
+            case 'aluno':
+                return '/student/dashboard';
+            
+            case UserType::INSTRUTOR:
+            case 'instrutor':
+                // Instrutor acessa o Painel Admin
+                return '/admin/dashboard';
+            
+            default:
+                // Fallback para usuários sem tipo definido
+                Log::warning('LoginController: Tipo de usuário não reconhecido', [
+                    'user_type' => $user->type,
+                    'user_id' => $user->id
+                ]);
+                return '/student/dashboard';
+        }
     }
 
     /**
@@ -66,14 +93,57 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if ($user->type === 'aluno') { // Corrigido: 'type' ao invés de 'tipo_usuario'
-            return redirect()->route('student.dashboard');
-        } elseif ($user->type === 'instrutor') {
-            return redirect()->route('instructor.dashboard');
-        } elseif ($user->type === 'admin') {
-            return redirect()->route('admin.dashboard');
+        Log::info('LoginController: Usuário autenticado com sucesso', [
+            'user_id' => $user->id,
+            'user_type' => $user->type,
+            'user_email' => $user->email
+        ]);
+
+        // Verificar se o usuário está ativo
+        if (!$user->isActive()) {
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Sua conta está inativa. Entre em contato com o administrador.'
+            ]);
         }
 
-        return redirect()->intended($this->redirectPath());
+        // Redirecionar baseado no tipo de usuário
+        switch ($user->type) {
+            case UserType::ADMIN:
+            case 'admin':
+                return redirect()->route('admin.dashboard');
+            
+            case UserType::ALUNO:
+            case 'aluno':
+                return redirect()->route('student.dashboard');
+            
+            case UserType::INSTRUTOR:
+            case 'instrutor':
+                // Instrutor acessa o Painel Admin
+                return redirect()->route('admin.dashboard');
+            
+            default:
+                Log::warning('LoginController: Redirecionamento padrão aplicado', [
+                    'user_type' => $user->type,
+                    'user_id' => $user->id
+                ]);
+                return redirect()->route('student.dashboard');
+        }
+    }
+
+    /**
+     * Fazer logout do usuário e redirecionar para a página inicial.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect()->route('web.home')->with('success', 'Logout realizado com sucesso!');
     }
 }
