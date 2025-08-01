@@ -12,6 +12,8 @@ use App\Http\Controllers\Auth\{
     RegisterController
 };
 
+use App\Http\Controllers\Student\NotificationController;
+
 // Public web routes
 Route::controller(WebController::class)->name('web.')->group(function () {
     Route::get('/', 'index')->name('home');
@@ -70,28 +72,34 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth'
     Route::get('/certificates/{id}/view', [StudentController::class, 'viewCertificate'])->name('certificates.view');
     Route::post('/certificates/verify', [StudentController::class, 'verifyCertificate'])->name('certificates.verify');
 
+    // Notificações
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-as-read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
     // Statistics
     Route::get('/stats', [StudentController::class, 'getStudyStats'])->name('stats');
 });
 
 // Home redirect for authenticated users
-Route::get('/home', function () {
-    return redirect()->route('student.dashboard');
-})->middleware('auth')->name('home');
+//Route::get('/home', function () {
+//    return redirect()->route('student.dashboard');
+//})->middleware('auth')->name('home');
 
 // Admin routes (accessible by admin and instructor)
 Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'check.admin.access']], function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('dashboard');
-    
+
     // Courses
     Route::resource('courses', App\Http\Controllers\Admin\CourseController::class);
-    
+
     // Modules
     Route::resource('modules', App\Http\Controllers\Admin\ModuleController::class);
-    
+
     // Lessons
     Route::resource('lessons', App\Http\Controllers\Admin\LessonController::class);
-    
+
     // Users
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 });
+
+

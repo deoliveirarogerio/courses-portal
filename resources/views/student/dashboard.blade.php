@@ -11,6 +11,7 @@
                 <h2 class="fw-bold mb-1">Olá, {{ auth()->user()->name ?? 'Estudante' }}! 👋</h2>
                 <p class="text-muted mb-0">Bem-vindo de volta ao seu painel de estudos</p>
             </div>
+
             <div class="d-none d-md-block">
                 <span class="badge bg-primary fs-6 px-3 py-2">
                     <i class="bi bi-calendar-event me-2"></i>

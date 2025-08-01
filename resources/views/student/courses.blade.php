@@ -142,7 +142,7 @@
                                 <div class="card-body">
                                     <h5 class="card-title fw-bold mb-2">{{ $course->title }}</h5>
                                     <p class="text-muted small mb-3">
-                                        <i class="bi bi-person me-1"></i>{{ $course->instructor ?? 'Instrutor não informado' }}
+                                        <i class="bi bi-person me-1"></i>{{ $course->instructor->name ?? 'Instrutor não informado' }}
                                     </p>
 
                                     <!-- Progress Bar -->
@@ -249,7 +249,7 @@
                             <div class="card-body">
                                 <h5 class="card-title fw-bold mb-2">{{ $course->title }}</h5>
                                 <p class="text-muted small mb-3">
-                                    <i class="bi bi-person me-1"></i>{{ $course->instructor ?? 'Instrutor não informado' }}
+                                    <i class="bi bi-person me-1"></i>{{ $course->instructor->name ?? 'Instrutor não informado' }}
                                 </p>
 
                                 <div class="mb-3">
@@ -313,7 +313,7 @@
                             <div class="card-body">
                                 <h5 class="card-title fw-bold mb-2">{{ $course->title }}</h5>
                                 <p class="text-muted small mb-3">
-                                    <i class="bi bi-person me-1"></i>{{ $course->instructor ?? 'Instrutor não informado' }}
+                                    <i class="bi bi-person me-1"></i>{{ $course->instructor->name ?? 'Instrutor não informado' }}
                                 </p>
 
                                 <div class="mb-3">
@@ -389,7 +389,7 @@
                          data-level="{{ $course->difficulty_level }}"
                          data-price="{{ $course->price }}"
                          data-title="{{ strtolower($course->title) }}"
-                         data-instructor="{{ strtolower($course->instructor ?? '') }}">
+                         data-instructor="{{ strtolower($course->instructor->name ?? '') }}">
                         <div class="card stats-card h-100">
                             <div class="position-relative">
                                 <img src="{{ $course->image_url }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
@@ -409,7 +409,7 @@
                                 @if($course->instructor)
                                     <div class="mb-2">
                                         <small class="text-muted">
-                                            <i class="bi bi-person me-1"></i>{{ $course->instructor }}
+                                            <i class="bi bi-person me-1"></i>{{ $course->instructor->name }}
                                         </small>
                                     </div>
                                 @endif

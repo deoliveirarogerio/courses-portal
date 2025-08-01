@@ -28,7 +28,10 @@ class AdminMiddleware
         if (!$user->isAdmin()) {
             Log::info('AdminMiddleware: Usuário não é admin', [
                 'user_type' => $user->type,
-                'expected_type' => 'admin'
+                'expected_type' => [
+                    'admin',
+                    'instrutor'
+                ]
             ]);
             abort(403, 'Acesso negado. Apenas administradores podem acessar esta área.');
         }
@@ -36,4 +39,4 @@ class AdminMiddleware
         Log::info('AdminMiddleware: Acesso permitido para admin');
         return $next($request);
     }
-} 
+}

@@ -18,7 +18,7 @@ class LessonController extends Controller
 
     public function index()
     {
-        $lessons = Lesson::with(['module.course'])->latest()->paginate(15);
+        $lessons = Lesson::with(['module.course'])->latest()->paginate(5);
         return view('admin.lessons.index', compact('lessons'));
     }
 

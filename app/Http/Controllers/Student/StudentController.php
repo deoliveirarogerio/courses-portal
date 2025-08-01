@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\CourseCompleted;
 
 class StudentController extends Controller
 {
@@ -42,6 +44,16 @@ class StudentController extends Controller
             'studyHours'
         ));
     }
+
+    public function markAsRead($id)
+{
+    $notification = auth()->user()->notifications()->where('id', $id)->first();
+    if ($notification) {
+        $notification->markAsRead();
+    }
+
+    return response()->json(['success' => true]);
+}
 
 
     /**

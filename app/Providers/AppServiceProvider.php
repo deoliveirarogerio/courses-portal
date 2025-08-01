@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Registrar seu ChannelsRouteServiceProvider manualmente
+        $this->app->register(\App\Providers\ChannelsRouteServiceProvider::class);
     }
 
     /**

@@ -54,7 +54,7 @@ class CheckAdminAccess
             case UserType::ALUNO:
             case 'aluno':
                 return redirect()->route('student.dashboard')->with('error', 'Você não tem permissão para acessar o painel administrativo.');
-            
+
             default:
                 return redirect()->route('student.dashboard')->with('error', 'Você não tem permissão para acessar esta área.');
         }

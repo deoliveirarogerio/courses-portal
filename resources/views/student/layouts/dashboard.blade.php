@@ -9,6 +9,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="{{ asset('web/css/dash.css') }}" rel="stylesheet">
     <title>@yield('title', 'Dashboard - Portal de Cursos')</title>
+    <script>
+    window.userId = {{ auth()->id() ?? 'null' }};
+    console.log('🔧 UserId definido no layout:', window.userId);
+</script>
+
+@vite(['resources/js/app.js'])
 </head>
 <body>
     <div class="container-fluid">
@@ -83,29 +89,46 @@
 
                         <div class="navbar-nav ms-auto">
                             <!-- Notifications -->
-                            <div class="nav-item dropdown">
-                                <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-bell fs-5"></i>
-                                    <span class="notification-badge">3</span>
+                            <!-- Notification Dropdown -->
+                            <div class="nav-item dropdown mt-2">
+                                <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-bell"></i>
+                                    @if(auth()->check() && auth()->user()->unreadNotifications->count() > 0)
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notification-count">
+                                            {{ auth()->user()->unreadNotifications->count() }}
+                                        </span>
+                                    @endif
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
+
+                                <ul class="dropdown-menu dropdown-menu-end" id="notification-list">
                                     <li><h6 class="dropdown-header">Notificações</h6></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-info-circle text-primary me-2"></i>
-                                        Novo curso disponível
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        Certificado emitido
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-clock text-warning me-2"></i>
-                                        Lembrete de aula
-                                    </a></li>
+                                    @if(auth()->check())
+                                        @forelse(auth()->user()->unreadNotifications()->orderBy('created_at', 'desc')->get() as $notification)
+                                            <li>
+                                                <a class="dropdown-item" href="{{ $notification->data['url'] ?? '#' }}">
+                                                    <i class="bi bi-bell-fill text-info me-2"></i>
+                                                    {{ $notification->data['message'] }}
+                                                </a>
+                                            </li>
+                                        @empty
+                                            <li>
+                                                <span class="dropdown-item text-muted">Nenhuma notificação</span>
+                                            </li>
+                                        @endforelse
+                                    @else
+                                        <li>
+                                            <span class="dropdown-item text-muted">Faça login para ver notificações</span>
+                                        </li>
+                                    @endif
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-center" href="#">Ver todas</a></li>
+                                    <li>
+                                        <a class="dropdown-item text-center" href="{{ route('student.notifications.index') }}">
+                                            Ver todas
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
+
 
                             <!-- User Menu -->
                             <div class="nav-item dropdown">
@@ -182,5 +205,14 @@
     </script>
 
     @yield('scripts')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+

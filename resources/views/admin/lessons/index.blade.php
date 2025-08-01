@@ -90,7 +90,7 @@
             </div>
             
             <div class="d-flex justify-content-center mt-4">
-                {{ $lessons->links() }}
+                {{ $lessons->links('pagination::bootstrap-5') }}
             </div>
         @else
             <div class="text-center py-5">

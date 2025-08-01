@@ -85,7 +85,7 @@
             </div>
             
             <div class="d-flex justify-content-center mt-4">
-                {{ $modules->links() }}
+                {{ $modules->links('pagination::bootstrap-5') }}
             </div>
         @else
             <div class="text-center py-5">

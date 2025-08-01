@@ -18,7 +18,7 @@ class CourseController extends Controller
 
     public function index()
     {
-        $courses = Course::with('modules')->latest()->paginate(15);
+        $courses = Course::with('modules')->latest()->paginate(5);
         return view('admin.courses.index', compact('courses'));
     }
 
