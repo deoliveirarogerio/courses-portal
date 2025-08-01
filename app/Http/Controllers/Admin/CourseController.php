@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\User;
+use App\Notifications\NewCourseNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class CourseController extends Controller
 {
@@ -55,6 +57,47 @@ class CourseController extends Controller
         }
 
         Course::create($data);
+
+        // Debug da consulta de estudantes
+        \Log::info("🔍 Buscando estudantes...");
+        \Log::info("🔍 Query: User::where('type', 'aluno')->where('status', 'ativo')");
+
+        $students = User::where('type', 'aluno')->where('status', 'active')->get();
+
+        \Log::info("📊 Resultado da busca", [
+            'total_students' => $students->count(),
+            'students' => $students->pluck('id', 'name')->toArray()
+        ]);
+
+        // Se não encontrou nenhum, vamos ver todos os usuários
+        if ($students->count() === 0) {
+            $allUsers = User::all();
+            \Log::info("🔍 Todos os usuários no sistema", [
+                'total' => $allUsers->count(),
+                'users' => $allUsers->map(function($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'type' => $user->type,
+                        'status' => $user->status ?? 'sem status'
+                    ];
+                })->toArray()
+            ]);
+        }
+
+        \Log::info("📧 Enviando notificações para " . $students->count() . " estudantes");
+
+        foreach ($students as $student) {
+            try {
+                $student->notify(new NewCourseNotification(
+                    'Um novo curso foi criado: ' . $request->title,
+                    route('student.courses')
+                ));
+                \Log::info("✅ Notificação enviada para: " . $student->name . " (ID: {$student->id})");
+            } catch (\Exception $e) {
+                \Log::error("❌ Erro ao enviar notificação para {$student->name}: " . $e->getMessage());
+            }
+        }
 
         return redirect()->route('admin.courses.index')
             ->with('success', 'Curso criado com sucesso!');
@@ -121,3 +164,4 @@ class CourseController extends Controller
             ->with('success', 'Curso excluído com sucesso!');
     }
 } 
+
