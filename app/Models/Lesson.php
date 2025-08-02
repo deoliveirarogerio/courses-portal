@@ -10,13 +10,19 @@ class Lesson extends Model
     use HasFactory;
 
     protected $fillable = [
-        'module_id',
         'title',
-        'description',
+        'description', 
+        'module_id',
+        'course_id', // Certifique-se de que course_id está no fillable
         'video_url',
         'duration',
-        'order',
+        'order'
     ];
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 
     public function module()
     {

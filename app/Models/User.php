@@ -75,6 +75,16 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function enrollmentsAsStudent()
+    {
+        return $this->hasMany(Enrollment::class, 'student_id');
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(\App\Models\Enrollment::class);
+    }
+
     /**
      * Verificar se o usuário é um admin.
      */

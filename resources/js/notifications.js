@@ -1,63 +1,63 @@
 // Aguarda o DOM estar pronto
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== NOTIFICATIONS.JS CARREGADO ===');
-    
-    // Função para tentar conectar com retry
-    function tryConnect(attempt = 1) {
-        console.log(`🔄 Tentativa ${attempt} de conexão...`);
-        console.log('Echo disponível?', !!window.Echo);
-        console.log('UserId disponível?', !!window.userId);
-        console.log('UserId valor:', window.userId);
-        
-        if (window.Echo && window.userId) {
-            console.log(`🎯 Conectando ao canal: App.Models.User.${window.userId}`);
-            
-            try {
-                const channel = window.Echo.private(`App.Models.User.${window.userId}`);
-                
-                // Debug dos eventos do canal
-                channel.subscribed(() => {
-                    console.log('✅ Canal privado subscrito com sucesso');
-                });
-                
-                channel.error((error) => {
-                    console.error('❌ Erro no canal privado:', error);
-                });
-                
-                // Escutar notificações
-                channel.notification((notification) => {
-                    console.log("📥 NOTIFICAÇÃO RECEBIDA:", notification);
-                    console.log("📥 Tipo da notificação:", typeof notification);
-                    console.log("📥 Propriedades:", Object.keys(notification));
-                    
-                    addNotificationToList(notification);
-                    incrementNotificationCount();
-                    showNotificationToast(notification.message || 'Nova notificação');
-                });
-                
-                // Escutar evento específico também (caso o .notification não funcione)
-                channel.listen('.notification', (data) => {
-                    console.log("📥 EVENTO .notification RECEBIDO:", data);
-                    addNotificationToList(data);
-                    incrementNotificationCount();
-                    showNotificationToast(data.message || 'Nova notificação');
-                });
-                
-                console.log('✅ Configuração do canal concluída');
-                
-            } catch (error) {
-                console.error('❌ Erro ao configurar canal:', error);
-            }
-        } else {
-            console.error('❌ Echo ou userId não disponível');
-            
-            if (attempt < 10) {
-                setTimeout(() => tryConnect(attempt + 1), 1000);
-            }
-        }
+    console.log("🚀 NOTIFICATIONS.JS CARREGADO!");
+
+    // Verificar se o Echo existe
+    if (typeof window.Echo === 'undefined') {
+        console.error("❌ Echo não está definido!");
+        return;
     }
 
-    setTimeout(() => tryConnect(), 1000);
+    console.log("✅ Echo encontrado:", window.Echo);
+
+    // Verificar se o usuário está logado - CORRIGIDO
+    let userId = window.userId || document.querySelector('meta[name="user-id"]')?.getAttribute('content');
+    console.log("👤 User ID (window.userId):", window.userId);
+    console.log("👤 User ID (meta tag):", document.querySelector('meta[name="user-id"]')?.getAttribute('content'));
+    console.log("👤 User ID final:", userId);
+
+    if (!userId) {
+        console.error("❌ User ID não encontrado!");
+        return;
+    }
+
+    // Conectar ao canal
+    const channelName = `App.Models.User.${userId}`;
+    console.log("📡 Conectando ao canal:", channelName);
+
+    const channel = window.Echo.private(channelName);
+
+    console.log("📡 Canal criado:", channel);
+
+    // Escutar notificações
+    channel.notification((notification) => {
+        console.log("📥 NOTIFICAÇÃO RECEBIDA:", notification);
+        console.log("📥 Tipo:", typeof notification);
+        console.log("📥 Keys:", Object.keys(notification));
+        console.log("📥 JSON:", JSON.stringify(notification, null, 2));
+        
+        addNotificationToList(notification);
+        incrementNotificationCount();
+        showNotificationToast(notification.message || 'Nova notificação');
+    });
+
+    // Escutar evento específico
+    channel.listen('.notification', (data) => {
+        console.log("📥 EVENTO .notification:", data);
+        addNotificationToList(data);
+        incrementNotificationCount();
+        showNotificationToast(data.message || 'Nova notificação');
+    });
+
+    // Testar conexão
+    console.log("🔗 Testando conexão do canal...");
+    channel.subscribed(() => {
+        console.log("✅ CANAL CONECTADO COM SUCESSO!");
+    });
+
+    channel.error((error) => {
+        console.error("❌ ERRO NO CANAL:", error);
+    });
 });
 
 // Suas funções aqui (fora do DOMContentLoaded)
@@ -180,3 +180,5 @@ function showNotificationToast(message) {
         console.error("❌ Erro ao mostrar toast:", error);
     }
 }
+
+
