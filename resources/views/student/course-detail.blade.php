@@ -94,11 +94,34 @@
                                 <div class="accordion-body p-0">
                                     <ul class="list-group list-group-flush">
                                         @foreach($module->lessons as $lesson)
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                <a href="#" class="lesson-link" data-video-url="{{ $lesson->video_url }}">
-                                                    {{ $lesson->title }}
-                                                </a>
-                                                <span class="badge bg-light text-muted">{{ $lesson->duration }}</span>
+                                            <li class="list-group-item lesson-item border-0 mb-2">
+                                                <div class="d-flex align-items-center justify-content-between p-3 rounded lesson-card">
+                                                    <div class="d-flex align-items-center flex-grow-1">
+                                                        <div class="lesson-icon me-3">
+                                                            <i class="bi bi-play-circle-fill"></i>
+                                                        </div>
+                                                        <div class="lesson-content flex-grow-1">
+                                                            <button type="button" class="btn btn-link p-0 text-start lesson-link fw-medium" data-video-url="{{ $lesson->video_url }}">
+                                                                {{ $lesson->title }}
+                                                            </button>
+                                                            @if($lesson->description)
+                                                                <div class="lesson-description text-muted small mt-1">
+                                                                    {{ Str::limit($lesson->description, 80) }}
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <div class="lesson-meta d-flex align-items-center">
+                                                        @if($lesson->duration)
+                                                            <span class="badge bg-light text-dark me-2">
+                                                                <i class="bi bi-clock me-1"></i>{{ $lesson->duration }}
+                                                            </span>
+                                                        @endif
+                                                        <div class="lesson-status">
+                                                            <i class="bi bi-check-circle-fill text-success" style="display: none;"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -141,8 +164,6 @@ function enrollCourse(courseId) {
     }
 }
 
-// Troca o vídeo do player ao clicar em uma aula
-
 function changeVideo(videoUrl) {
     if (!videoUrl) return;
     
@@ -150,7 +171,6 @@ function changeVideo(videoUrl) {
     const isYouTube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
     
     if (isYouTube) {
-        // Extrair ID do vídeo do YouTube
         const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)?\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
         const matches = videoUrl.match(regex);
         const youtubeId = matches ? matches[1] : '';
@@ -158,7 +178,6 @@ function changeVideo(videoUrl) {
         if (youtubeId) {
             const embedUrl = `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&showinfo=0`;
             
-            // Criar iframe do YouTube
             playerContainer.innerHTML = `
                 <iframe 
                     id="mainVideo"
@@ -172,7 +191,6 @@ function changeVideo(videoUrl) {
             `;
         }
     } else {
-        // Criar player HTML5
         playerContainer.innerHTML = `
             <video id="mainVideo" class="w-100 rounded" controls>
                 <source id="mainVideoSource" src="${videoUrl}" type="video/mp4">
@@ -180,7 +198,6 @@ function changeVideo(videoUrl) {
             </video>
         `;
         
-        // Auto-play para vídeos HTML5
         const video = document.getElementById('mainVideo');
         video.load();
         video.play().catch(e => console.log('Auto-play bloqueado pelo navegador'));
@@ -188,13 +205,140 @@ function changeVideo(videoUrl) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.lesson-link').forEach(function(link) {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const videoUrl = this.getAttribute('data-video-url');
-            changeVideo(videoUrl);
+    const lessonCards = document.querySelectorAll('.lesson-card');
+    const lessonLinks = document.querySelectorAll('.lesson-link');
+    
+    lessonCards.forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            const link = this.querySelector('.lesson-link');
+            const videoUrl = link.getAttribute('data-video-url');
+            
+            if (videoUrl && videoUrl.trim() !== '') {
+                changeVideo(videoUrl);
+                
+                // Remover classe active de todos os cards
+                lessonCards.forEach(c => c.classList.remove('active'));
+                // Adicionar classe active no card clicado
+                this.classList.add('active');
+                
+                // Mostrar ícone de check
+                const checkIcon = this.querySelector('.bi-check-circle-fill');
+                if (checkIcon) {
+                    checkIcon.style.display = 'inline-block';
+                }
+            }
         });
     });
 });
 </script>
-@endsection 
+@endsection
+
+<style>
+.lesson-item {
+    background: transparent;
+    padding: 0;
+}
+
+.lesson-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.lesson-card:hover {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+}
+
+.lesson-card.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+}
+
+.lesson-card.active .lesson-link {
+    color: white !important;
+}
+
+.lesson-card.active .lesson-description {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.lesson-card.active .badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.lesson-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.lesson-card.active .lesson-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.lesson-link {
+    color: #2c3e50 !important;
+    text-decoration: none !important;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.lesson-link:hover {
+    color: #667eea !important;
+}
+
+.lesson-description {
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.lesson-meta .badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+}
+
+.accordion-item {
+    border: none;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.accordion-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    border: none;
+    font-weight: 600;
+}
+
+.accordion-button:not(.collapsed) {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    color: white !important;
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border: none;
+}
+
+.accordion-body {
+    padding: 0;
+    background: white;
+}
+</style>
+
+

@@ -19,10 +19,16 @@ class NewModuleNotification extends Notification implements ShouldBroadcast
     public $url;
     private $userId;
 
-    public function __construct($message, $url)
+    public function __construct($message, $moduleId = null, $courseId = null)
     {
         $this->message = $message;
-        $this->url = $url;
+        
+        // Gerar URL correta usando route helper
+        if ($courseId) {
+            $this->url = route('student.course.detail', $courseId);
+        } else {
+            $this->url = route('student.courses');
+        }
     }
 
     public function via($notifiable)

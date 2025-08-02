@@ -11,10 +11,16 @@ class CourseCompleted extends Notification implements ShouldBroadcast
     public $message;
     public $url;
 
-    public function __construct($message, $url)
+    public function __construct($message, $courseId = null)
     {
         $this->message = $message;
-        $this->url = $url;
+        
+        // Gerar URL correta usando route helper
+        if ($courseId) {
+            $this->url = route('student.certificates');
+        } else {
+            $this->url = route('student.dashboard');
+        }
     }
 
     public function via($notifiable)
@@ -47,5 +53,6 @@ class CourseCompleted extends Notification implements ShouldBroadcast
         return 'notification';
     }
 }
+
 
 

@@ -16,10 +16,16 @@ class NewCourseNotification extends Notification implements ShouldBroadcast
     public $url;
     private $userId;
 
-    public function __construct($message, $url)
+    public function __construct($message, $courseId = null)
     {
         $this->message = $message;
-        $this->url = $url;
+        
+        // Gerar URL correta usando route helper
+        if ($courseId) {
+            $this->url = route('student.course.detail', $courseId);
+        } else {
+            $this->url = route('student.courses');
+        }
     }
 
     public function via($notifiable)
@@ -59,6 +65,7 @@ class NewCourseNotification extends Notification implements ShouldBroadcast
         return new PrivateChannel('App.Models.User.' . $this->userId);
     }
 }
+
 
 
 

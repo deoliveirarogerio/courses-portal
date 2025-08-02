@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\{
 };
 
 use App\Http\Controllers\Student\NotificationController;
+use App\Http\Controllers\Student\StudentNotificationController;
 
 // Public web routes
 Route::controller(WebController::class)->name('web.')->group(function () {
@@ -73,9 +74,11 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth'
     Route::post('/certificates/verify', [StudentController::class, 'verifyCertificate'])->name('certificates.verify');
 
     // Notificações
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications', [StudentNotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/mark-as-read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::post('/notifications/{id}/mark-as-read', [StudentNotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-selected-as-read', [StudentNotificationController::class, 'markSelectedAsRead'])->name('notifications.markSelectedAsRead');
     // Statistics
     Route::get('/stats', [StudentController::class, 'getStudyStats'])->name('stats');
 });
@@ -101,5 +104,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'c
     // Users
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 });
+
+
+
+
+
 
 
