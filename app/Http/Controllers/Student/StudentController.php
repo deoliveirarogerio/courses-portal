@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -517,18 +516,23 @@ public function enrollCourse(Request $request, $id)
         ], 422);
     }
 
-    // Efetua a matrícula se não existir ainda
-    if (!$student->enrolledCourses()->where('course_id', $id)->exists()) {
-        $student->enrolledCourses()->attach($course->id, [
-            'progress' => 0,
-            'last_accessed' => now(),
-        ]);
+    // Verifica se o estudante já está matriculado
+    if ($student->enrolledCourses()->where('course_id', $id)->exists()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Você já está matriculado neste curso.'
+        ], 422);
     }
 
+    // Efetua a matrícula
+    $student->enrolledCourses()->attach($course->id, [
+        'progress' => 0,
+        'last_accessed' => now(),
+    ]);
 
     return response()->json([
         'success' => true,
         'message' => 'Matrícula realizada com sucesso!'
     ]);
-}
+    }
 }

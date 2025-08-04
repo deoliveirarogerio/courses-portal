@@ -6,14 +6,17 @@ use App\Http\Controllers\Web\{
     WebController,
     CourseController,
 };
-use App\Http\Controllers\Student\StudentController;
+use App\Http\Controllers\Student\{
+    StudentController,
+    ChatController,
+    NotificationController,
+    StudentNotificationController
+};
+
 use App\Http\Controllers\Auth\{
     LoginController,
     RegisterController
 };
-
-use App\Http\Controllers\Student\NotificationController;
-use App\Http\Controllers\Student\StudentNotificationController;
 
 // Public web routes
 Route::controller(WebController::class)->name('web.')->group(function () {
@@ -63,7 +66,7 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth'
 
     // Profile management
     Route::post('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/profile/avatar', [StudentController::class, 'updateAvatar'])->name('profile.avatar'); // Nova rota
+    Route::post('/profile/avatar', [StudentController::class, 'updateAvatar'])->name('profile.avatar');
     Route::post('/profile/change-password', [StudentController::class, 'changePassword'])->name('profile.change-password');
     Route::post('/profile/notifications', [StudentController::class, 'updateNotifications'])->name('profile.notifications');
     Route::post('/profile/privacy', [StudentController::class, 'updatePrivacy'])->name('profile.privacy');
@@ -79,8 +82,30 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth'
     Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
     Route::post('/notifications/{id}/mark-as-read', [StudentNotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/mark-selected-as-read', [StudentNotificationController::class, 'markSelectedAsRead'])->name('notifications.markSelectedAsRead');
+    
     // Statistics
     Route::get('/stats', [StudentController::class, 'getStudyStats'])->name('stats');
+    
+    // Chat routes
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/room/{room}', [ChatController::class, 'show'])->name('chat.room');
+    Route::post('/chat/join/{room}', [ChatController::class, 'joinRoom'])->name('chat.join');
+    Route::post('/chat/leave/{room}', [ChatController::class, 'leaveRoom'])->name('chat.leave');
+    Route::post('/chat/send/{room}', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::post('/chat/create', [ChatController::class, 'createRoom'])->name('chat.create');
+    Route::post('/chat/update-last-seen/{room}', [ChatController::class, 'updateLastSeen'])->name('chat.updateLastSeen');
+
+    // Fórum routes
+    Route::prefix('forum')->name('forum.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Student\ForumController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Student\ForumController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\Student\ForumController::class, 'store'])->name('store');
+        Route::get('/category/{id}', [App\Http\Controllers\Student\ForumController::class, 'category'])->name('category');
+        Route::get('/topic/{id}', [App\Http\Controllers\Student\ForumController::class, 'show'])->name('topic');
+        Route::post('/topic/{id}/reply', [App\Http\Controllers\Student\ForumController::class, 'reply'])->name('reply');
+        Route::post('/post/{id}/like', [App\Http\Controllers\Student\ForumController::class, 'likePost'])->name('post.like');
+        Route::post('/post/{id}/solution', [App\Http\Controllers\Student\ForumController::class, 'markAsSolution'])->name('post.solution');
+    });
 });
 
 // Home redirect for authenticated users
@@ -104,6 +129,20 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'c
     // Users
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 });
+
+// Rotas do Fórum e Chat para Estudantes
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
