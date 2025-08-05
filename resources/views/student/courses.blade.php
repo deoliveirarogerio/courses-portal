@@ -118,7 +118,7 @@
                         <div class="col-lg-6 col-xl-4 mb-4">
                             <div class="card stats-card h-100">
                                 <div class="position-relative">
-                                    <img src="{{ $course->image_url }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
+                                    <img src="{{ $course->image_url ?? asset('/web/img/webp/no-image-available-16by9.webp') }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
                                     <div class="position-absolute top-0 end-0 m-2">
                                         @if($course->pivot->progress ?? 0 == 100)
                                             <span class="badge bg-success">
@@ -238,7 +238,7 @@
                     <div class="col-lg-6 col-xl-4 mb-4">
                         <div class="card stats-card h-100">
                             <div class="position-relative">
-                                <img src="{{ $course->image_url }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
+                                <img src="{{ $course->image_url ?? asset('/web/img/webp/no-image-available-16by9.webp') }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
                                 <div class="position-absolute top-0 end-0 m-2">
                             <span class="badge bg-primary">
                                 <i class="bi bi-play-circle me-1"></i>Em Andamento
@@ -295,7 +295,7 @@
                     <div class="col-lg-6 col-xl-4 mb-4">
                         <div class="card stats-card h-100">
                             <div class="position-relative">
-                                <img src="{{ $course->image_url }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
+                                <img src="{{ $course->image_url ?? asset('/web/img/webp/no-image-available-16by9.webp') }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
                                 <div class="position-absolute top-0 end-0 m-2">
                             <span class="badge bg-success">
                                 <i class="bi bi-check-circle me-1"></i>Concluído
@@ -392,7 +392,7 @@
                          data-instructor="{{ strtolower($course->instructor->name ?? '') }}">
                         <div class="card stats-card h-100">
                             <div class="position-relative">
-                                <img src="{{ $course->image_url }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
+                                <img src="{{ $course->image_url ?? asset('/web/img/webp/no-image-available-16by9.webp') }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
                                 @if($course->is_featured)
                                     <span class="badge bg-warning position-absolute top-0 start-0 m-2">
                                     <i class="bi bi-star-fill me-1"></i>Destaque
@@ -461,7 +461,7 @@
                     <div class="col-lg-6 col-xl-4 mb-4">
                         <div class="card stats-card h-100">
                             <div class="position-relative">
-                                <img src="{{ $course->image_url }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
+                                <img src="{{ $course->image_url ?? asset('/web/img/webp/no-image-available-16by9.webp') }}" class="card-img-top" alt="{{ $course->title }}" style="height: 200px; object-fit: cover;">
                                 <span class="badge bg-warning position-absolute top-0 start-0 m-2">
                                 <i class="bi bi-star-fill me-1"></i>Destaque
                             </span>

@@ -9,11 +9,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="{{ asset('web/css/dash.css') }}" rel="stylesheet">
+     @hasSection('css')
+        @yield('css')
+        @endif
     <title>@yield('title', 'Dashboard - Portal de Cursos')</title>
     <script>
-    window.userId = {{ auth()->id() ?? 'null' }};
-    console.log('🔧 UserId definido no layout:', window.userId);
-</script>
+        window.userId = {{ auth()->id() ?? 'null' }};
+        window.roomId = {{ $roomId ?? 'null' }};
+        console.log('🔧 UserId definido no layout:', window.userId);
+    </script>
 
 @vite(['resources/js/app.js'])
 </head>
@@ -62,6 +66,21 @@
                         <a class="nav-link {{ request()->routeIs('student.progress*') ? 'active' : '' }}" href="{{ route('student.progress') }}">
                             <i class="bi bi-graph-up me-3"></i>Progresso
                         </a>
+                        
+                        <!-- Novas funcionalidades -->
+                        <a class="nav-link {{ request()->routeIs('student.forum*') ? 'active' : '' }}" href="{{ route('student.forum.index') }}">
+                            <i class="bi bi-chat-square-text me-3"></i>Fórum
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('student.chat*') ? 'active' : '' }}" href="{{ route('student.chat.index') }}">
+                            <i class="bi bi-chat-dots me-3"></i>Chat
+                            @php
+                                $unreadChats = 0; // Implementar contagem de mensagens não lidas
+                            @endphp
+                            @if($unreadChats > 0)
+                                <span class="badge bg-danger ms-auto">{{ $unreadChats }}</span>
+                            @endif
+                        </a>
+                        
                         <a class="nav-link {{ request()->routeIs('student.profile*') ? 'active' : '' }}" href="{{ route('student.profile') }}">
                             <i class="bi bi-person me-3"></i>Perfil
                         </a>
@@ -204,13 +223,13 @@
             }
         });
     </script>
-
     @hasSection('scripts')
         @yield('scripts')
         @endif
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
 

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('courses', function (Blueprint $table) {
             // Adicionar campos adicionais
+            $table->foreignId('instructor_id')->nullable()->after('id')->constrained('users')->onDelete('set null');
             $table->string('image')->nullable()->after('description');
             $table->text('curriculum')->nullable()->after('image'); // Currículo do curso
             $table->string('duration')->nullable()->after('curriculum'); // Ex: "40 horas"
@@ -24,7 +25,7 @@ return new class extends Migration
             $table->integer('total_reviews')->default(0)->after('rating'); // Total de avaliações
 
             // Alterar campos existentes
-            $table->enum('status', ['ativo', 'inativo', 'rascunho'])->default('rascunho')->change();
+            $table->enum('status', ['ativo', 'inativo', 'rascunho'])->default('Não informado');
             $table->integer('max_students')->default(50)->after('remaining_slots'); // Máximo de alunos
         });
     }
@@ -40,7 +41,7 @@ return new class extends Migration
                 'curriculum',
                 'duration',
                 'difficulty_level',
-                'instructor',
+                'instructor_id',
                 'tags',
                 'is_featured',
                 'total_students',
@@ -49,7 +50,7 @@ return new class extends Migration
                 'max_students'
             ]);
 
-            $table->enum('status', ['sim', 'não'])->default('não')->change();
+            $table->enum('status', ['ativo', 'inativo', 'rascunho'])->default('Não informado');
         });
     }
 };
