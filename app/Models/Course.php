@@ -75,7 +75,7 @@ class Course extends Model
             return asset('storage/courses/' . $this->image);
         }
 
-        return 'https://via.placeholder.com/400x300/0d6efd/ffffff?text=' . urlencode($this->title);
+        return asset('/web/img/webp/no-image-available-16by9.webp');
     }
 
     /**

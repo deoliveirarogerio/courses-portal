@@ -14,9 +14,10 @@
         @endif
     <title>@yield('title', 'Dashboard - Portal de Cursos')</title>
     <script>
-    window.userId = {{ auth()->id() ?? 'null' }};
-    console.log('🔧 UserId definido no layout:', window.userId);
-</script>
+        window.userId = {{ auth()->id() ?? 'null' }};
+        window.roomId = {{ $roomId ?? 'null' }};
+        console.log('🔧 UserId definido no layout:', window.userId);
+    </script>
 
 @vite(['resources/js/app.js'])
 </head>
@@ -222,7 +223,6 @@
             }
         });
     </script>
-
     @hasSection('scripts')
         @yield('scripts')
         @endif

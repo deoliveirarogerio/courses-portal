@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Web\{
     WebController,
     CourseController,
@@ -108,11 +107,6 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth'
     });
 });
 
-// Home redirect for authenticated users
-//Route::get('/home', function () {
-//    return redirect()->route('student.dashboard');
-//})->middleware('auth')->name('home');
-
 // Admin routes (accessible by admin and instructor)
 Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'check.admin.access']], function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('dashboard');
@@ -129,8 +123,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'c
     // Users
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 });
-
-// Rotas do Fórum e Chat para Estudantes
 
 
 

@@ -2,6 +2,96 @@
 
 @section('title', $room->name . ' - Chat')
 
+@section('css')
+<style>
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    word-wrap: break-word;
+}
+
+.message-own {
+    background-color: #61a5e9;
+    color: white;
+    margin-left: auto;
+}
+
+.message-other {
+    background-color: #c2c2c2;
+    border: 1px solid #e9ecef;
+}
+
+.message-actions {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.message-item:hover .message-actions {
+    opacity: 1;
+}
+
+.participant-item {
+    position: relative;
+}
+
+.online-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+.chat-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.mention {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+#messages-container {
+    height: 400px;
+}
+</style>
+@endsection
+
 @section('content')
 <div class="container-fluid h-100">
     <div class="row h-100">
@@ -65,18 +155,18 @@
                                             <div class="message-content">
                                                 @if($message->type === 'image')
                                                     <div class="message-image mb-2">
-                                                        <img src="{{ Storage::url($message->metadata['path']) }}" 
+                                                        <img src="{{ Storage::url($message->metadata['path'] ?? '')  }}" 
                                                              class="img-fluid rounded" 
                                                              style="max-width: 300px; max-height: 200px;"
                                                              onclick="showImageModal(this.src)">
                                                     </div>
                                                 @elseif($message->type === 'file')
                                                     <div class="message-file mb-2">
-                                                        <a href="{{ Storage::url($message->metadata['path']) }}" 
+                                                        <a href="{{ Storage::url($message->metadata['path'] ?? '') }}"
                                                            target="_blank" 
                                                            class="btn btn-sm btn-outline-primary">
                                                             <i class="bi bi-file-earmark me-1"></i>
-                                                            {{ $message->metadata['original_name'] }}
+                                                            {{ $message->metadata['original_name'] ?? '' }}
                                                         </a>
                                                     </div>
                                                 @endif
@@ -135,6 +225,12 @@
                         <form id="message-form" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" id="reply_to" name="reply_to">
+                            <div id="reply-preview" class="alert alert-secondary d-none d-flex justify-content-between align-items-center p-2 mb-2" style="font-size: 0.9rem;">
+                                <div>
+                                    <strong id="reply-user-name"></strong>: <span id="reply-message-text"></span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-close" onclick="cancelReply()" aria-label="Fechar"></button>
+                            </div>
                             
                             <div class="input-group">
                                 <input type="file" 
@@ -240,307 +336,257 @@
         </div>
     </div>
 </div>
-
-<style>
-.message-bubble {
-    max-width: 70%;
-    padding: 12px 16px;
-    border-radius: 18px;
-    word-wrap: break-word;
-}
-
-.message-own {
-    background-color: #007bff;
-    color: white;
-    margin-left: auto;
-}
-
-.message-other {
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-}
-
-.message-actions {
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.message-item:hover .message-actions {
-    opacity: 1;
-}
-
-.participant-item {
-    position: relative;
-}
-
-.online-indicator {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 12px;
-    height: 12px;
-    background-color: #28a745;
-    border: 2px solid white;
-    border-radius: 50%;
-}
-
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-}
-
-.typing-dots {
-    display: flex;
-    gap: 4px;
-}
-
-.typing-dots span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #6c757d;
-    animation: typing 1.4s infinite ease-in-out;
-}
-
-.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes typing {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1); }
-}
-
-.chat-link {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.mention {
-    background-color: #e3f2fd;
-    color: #1976d2;
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-weight: 500;
-}
-
-#messages-container {
-    height: 400px;
-}
-</style>
-
+@section('scripts')
 <script>
-const roomId = {{ $room->id }};
-const userId = {{ auth()->id() }};
-let replyToId = null;
+document.addEventListener('DOMContentLoaded', function () {
+    const roomId = {{ $room->id }};
+    const userId = {{ auth()->id() }};
+    let replyToId = null;
 
-// Configurar Echo para tempo real
-window.Echo.join(`chat-room.${roomId}`)
-    .here((users) => {
-        console.log('Usuários online:', users);
-    })
-    .joining((user) => {
-        console.log('Usuário entrou:', user);
-        addSystemMessage(`${user.name} entrou na sala`);
-    })
-    .leaving((user) => {
-        console.log('Usuário saiu:', user);
-        addSystemMessage(`${user.name} saiu da sala`);
-    })
-    .listen('MessageSent', (e) => {
-        if (e.message.user.id !== userId) {
-            addMessage(e.message);
-            scrollToBottom();
-        }
-    });
+    console.log('🧪 Echo:', window.Echo);
+    console.log('🧪 roomId:', roomId);
+    console.log('🧪 userId:', userId);
 
-// Enviar mensagem
-document.getElementById('message-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const messageInput = document.getElementById('message-input');
-    const message = messageInput.value.trim();
-    const attachment = document.getElementById('attachment').files[0];
-    
-    if (!message && !attachment) return;
-    
-    const formData = new FormData();
-    formData.append('message', message);
-    formData.append('reply_to', replyToId);
-    if (attachment) {
-        formData.append('attachment', attachment);
-    }
-    
-    console.log('Enviando mensagem:', {
-        message,
-        roomId,
-        replyToId
-    });
-    
-    fetch(`{{ route('student.chat.send', $room->id) }}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        },
-        body: formData
-    })
-    .then(response => {
-        console.log('Status da resposta:', response.status);
-        if (!response.ok) {
-            return response.text().then(text => {
-                console.error('Erro no servidor:', text);
-                throw new Error(text);
+    // Configurar Echo
+    if (typeof window.Echo !== 'undefined') {
+        window.Echo.join(`chat-room.${roomId}`)
+            .here((users) => {
+                console.log('Usuários online:', users);
+            })
+            .joining((user) => {
+                console.log('Usuário entrou:', user);
+                addSystemMessage(`${user?.name || 'Usuário'} entrou na sala`);
+            })
+            .leaving((user) => {
+                console.log('Usuário saiu:', user);
+                addSystemMessage(`${user?.name || 'Usuário'} saiu da sala`);
+            })
+            .listen('MessageSent', (e) => {
+                if (e.message.user.id !== userId) {
+                    addMessage(e.message);
+                    scrollToBottom();
+                }
             });
+            window.showAttachmentPreview = function () {
+            console.log('📎 Arquivo selecionado!');
+            const file = document.getElementById('attachment').files[0];
+            if (file) {
+                document.getElementById('attachment-name').textContent = file.name;
+                document.getElementById('attachment-preview').style.display = 'block';
+            }
+        };
+
+    window.removeAttachment = function () {
+        document.getElementById('attachment').value = '';
+        document.getElementById('attachment-preview').style.display = 'none';
+    };
+    } else {
+        console.error('Echo não está disponível!');
+    }
+
+    // Enviar mensagem
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const messageInput = document.getElementById('message-input');
+        const message = messageInput.value.trim();
+        const attachment = document.getElementById('attachment').files[0];
+
+        if (!message && !attachment) return;
+
+        const formData = new FormData();
+        formData.append('message', message);
+        if (replyToId) {
+            formData.append('reply_to', replyToId);
         }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Resposta do servidor:', data);
-        if (data.success) {
-            messageInput.value = '';
-            removeAttachment();
-            cancelReply();
-            addMessage(data.message);
-            scrollToBottom();
-        } else {
-            console.error('Erro:', data.error);
-            alert(data.error || 'Erro ao enviar mensagem');
+        if (attachment) {
+            formData.append('attachment', attachment);
         }
-    })
-    .catch(error => {
-        console.error('Erro ao enviar mensagem:', error);
-        alert('Erro ao enviar mensagem: ' + error.message);
+
+        fetch(`{{ route('student.chat.send', $room->id) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error('Erro no servidor:', text);
+                    throw new Error(text);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                messageInput.value = '';
+                removeAttachment();
+                cancelReply();
+                addMessage(data.message);
+                scrollToBottom();
+            } else {
+                console.error('Erro:', data.error);
+                alert(data.error || 'Erro ao enviar mensagem');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao enviar mensagem:', error);
+            alert('Erro ao enviar mensagem: ' + error.message);
+        });
     });
-});
 
-function addMessage(message) {
-    const messagesList = document.getElementById('messages-list');
-    const messageHtml = createMessageHtml(message);
-    messagesList.insertAdjacentHTML('beforeend', messageHtml);
-}
+    function addMessage(message) {
+        const messagesList = document.getElementById('messages-list');
+        const html = renderMessageHTML(message, userId);
+        messagesList.insertAdjacentHTML('beforeend', html);
+    }
 
-function addSystemMessage(text) {
-    const messagesList = document.getElementById('messages-list');
-    const systemMessageHtml = `
-        <div class="text-center my-2">
-            <small class="text-muted bg-light px-2 py-1 rounded">${text}</small>
-        </div>
-    `;
-    messagesList.insertAdjacentHTML('beforeend', systemMessageHtml);
-}
+    function addSystemMessage(text) {
+        const messagesList = document.getElementById('messages-list');
+        const systemMessageHtml = `
+            <div class="text-center my-2">
+                <small class="text-muted bg-light px-2 py-1 rounded">${text}</small>
+            </div>
+        `;
+        messagesList.insertAdjacentHTML('beforeend', systemMessageHtml);
+    }
 
-function createMessageHtml(message) {
-    const isOwn = message.user.id === userId;
-    const time = new Date(message.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
-    
-    return `
-        <div class="message-item mb-3" data-message-id="${message.id}">
-            <div class="d-flex ${isOwn ? 'justify-content-end' : ''}">
-                <div class="message-bubble ${isOwn ? 'message-own' : 'message-other'}">
-                    ${!isOwn ? `
-                        <div class="message-header mb-1">
-                            <small class="fw-bold text-primary">${message.user.name}</small>
-                            ${message.user.type === 'instrutor' ? '<span class="badge bg-warning ms-1">Instrutor</span>' : ''}
-                            <small class="text-muted ms-2">${time}</small>
+    function renderMessageHTML(message, userId) {
+        const isOwn = message.user.id === userId;
+        const time = new Date(message.created_at).toLocaleTimeString();
+
+        return `
+            <div class="message-item mb-3" data-message-id="${message.id}">
+                <div class="d-flex ${isOwn ? 'justify-content-end' : ''}">
+                    <div class="message-bubble ${isOwn ? 'message-own' : 'message-other'}">
+                        ${!isOwn ? `
+                            <div class="message-header mb-1">
+                                <small class="fw-bold text-primary">${escapeHtml(message.user?.name || 'Usuário')}</small>
+                                ${message.user?.type === 'instrutor' ? '<span class="badge bg-warning ms-1">Instrutor</span>' : ''}
+                                <small class="text-muted ms-2">${time}</small>
+                            </div>
+                        ` : ''}
+
+                        ${message.reply_to ? `
+                            <div class="reply-reference mb-2 p-2 bg-light rounded">
+                                <small class="text-muted">
+                                    <i class="bi bi-reply me-1"></i>
+                                    <strong>${escapeHtml(message.reply_to.user?.name || 'Usuário')}:</strong>
+                                    ${escapeHtml(message.reply_to.message.substring(0, 50))}${message.reply_to.message.length > 50 ? '...' : ''}
+                                </small>
+                            </div>
+                        ` : ''}
+
+                        <div class="message-content">
+                            <div class="message-text">${escapeHtml(message.message)}</div>
                         </div>
-                    ` : ''}
-                    
-                    ${message.reply_to ? `
-                        <div class="reply-reference mb-2 p-2 bg-light rounded">
-                            <small class="text-muted">
-                                <i class="bi bi-reply me-1"></i>
-                                <strong>${message.reply_to.user.name}:</strong>
-                                ${message.reply_to.message.substring(0, 50)}${message.reply_to.message.length > 50 ? '...' : ''}
-                            </small>
+
+                        ${isOwn ? `
+                            <div class="message-time text-end mt-1">
+                                <small class="text-muted">${time}</small>
+                            </div>
+                        ` : ''}
+
+                        <div class="message-actions mt-1">
+                            <button class="btn btn-sm btn-link p-0 me-2"
+                                onclick="replyToMessage(${message.id}, '${escapeHtml(message.user?.name)}', '${escapeHtml(message.message)}')">
+                                <i class="bi bi-reply"></i>
+                            </button>
                         </div>
-                    ` : ''}
-                    
-                    <div class="message-content">
-                        <div class="message-text">${message.message}</div>
-                    </div>
-                    
-                    ${isOwn ? `
-                        <div class="message-time text-end mt-1">
-                            <small class="text-muted">${time}</small>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="message-actions mt-1">
-                        <button class="btn btn-sm btn-link p-0 me-2" onclick="replyToMessage(${message.id}, '${message.user.name}', '${message.message.replace(/'/g, "\\'")}')">
-                            <i class="bi bi-reply"></i>
-                        </button>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
-}
-
-function replyToMessage(messageId, userName, messageText) {
-    replyToId = messageId;
-    document.getElementById('reply_to').value = messageId;
-    document.getElementById('reply-user').textContent = userName;
-    document.getElementById('reply-content').textContent = messageText.substring(0, 100) + (messageText.length > 100 ? '...' : '');
-    document.getElementById('reply-area').style.display = 'block';
-    document.getElementById('message-input').focus();
-}
-
-function cancelReply() {
-    replyToId = null;
-    document.getElementById('reply_to').value = '';
-    document.getElementById('reply-area').style.display = 'none';
-}
-
-function showAttachmentPreview() {
-    const file = document.getElementById('attachment').files[0];
-    if (file) {
-        document.getElementById('attachment-name').textContent = file.name;
-        document.getElementById('attachment-preview').style.display = 'block';
+        `;
     }
-}
 
-function removeAttachment() {
-    document.getElementById('attachment').value = '';
-    document.getElementById('attachment-preview').style.display = 'none';
-}
+    function replyToMessage(messageId, userName, messageText) {
+        replyToId = messageId;
+        document.getElementById('reply_to').value = messageId;
 
-function showImageModal(src) {
-    document.getElementById('modal-image').src = src;
-    new bootstrap.Modal(document.getElementById('imageModal')).show();
-}
+        const preview = document.getElementById('reply-preview');
+        const nameEl = document.getElementById('reply-user-name');
+        const textEl = document.getElementById('reply-message-text');
 
-function scrollToBottom() {
-    const container = document.getElementById('messages-container');
-    container.scrollTop = container.scrollHeight;
-}
+        if (preview && nameEl && textEl) {
+            nameEl.textContent = userName;
+            textEl.textContent = messageText.length > 80 ? messageText.substring(0, 80) + '...' : messageText;
+            preview.classList.remove('d-none');
+        }
 
-function leaveRoom() {
-    if (confirm('Tem certeza que deseja sair desta sala?')) {
-        fetch(`{{ route('student.chat.leave', $room->id) }}`, {
+        document.getElementById('message-input').focus();
+    }
+
+    function cancelReply() {
+        replyToId = null;
+        document.getElementById('reply_to').value = '';
+        const preview = document.getElementById('reply-preview');
+        if (preview) preview.classList.add('d-none');
+    }
+
+    function showAttachmentPreview() {
+        console.log('📎 Arquivo selecionado!');
+        const file = document.getElementById('attachment').files[0];
+        if (file) {
+            document.getElementById('attachment-name').textContent = file.name;
+            document.getElementById('attachment-preview').style.display = 'block';
+        }
+    }
+
+
+    function removeAttachment() {
+        document.getElementById('attachment').value = '';
+        document.getElementById('attachment-preview').style.display = 'none';
+    }
+
+    function showImageModal(src) {
+        document.getElementById('modal-image').src = src;
+        new bootstrap.Modal(document.getElementById('imageModal')).show();
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('messages-container');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function leaveRoom() {
+        if (confirm('Tem certeza que deseja sair desta sala?')) {
+            fetch(`{{ route('student.chat.leave', $room->id) }}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                }
+            })
+            .then(() => {
+                window.location.href = '{{ route('student.chat.index') }}';
+            });
+        }
+    }
+
+    // Atualizar última visualização periodicamente
+    setInterval(() => {
+        fetch(`{{ route('student.chat.updateLastSeen', $room->id) }}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             }
-        })
-        .then(() => {
-            window.location.href = '{{ route('student.chat.index') }}';
         });
-    }
-}
+    }, 30000);
 
-// Atualizar última visualização periodicamente
-setInterval(() => {
-    fetch(`{{ route('student.chat.updateLastSeen', $room->id) }}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        }
-    });
-}, 30000);
-
-// Scroll inicial para o final
-document.addEventListener('DOMContentLoaded', function() {
     scrollToBottom();
 });
+
 </script>
 @endsection
+
+@endsection
+

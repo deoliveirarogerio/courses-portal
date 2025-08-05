@@ -38,6 +38,7 @@ try {
     console.error('❌ Erro ao configurar Echo:', error);
 }
 
+
 // Remova a importação do echo.js
 // import './echo';
 

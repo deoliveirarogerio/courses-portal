@@ -88,11 +88,12 @@ class ChatController extends Controller
     {
         try {
             $request->validate([
-                'message' => 'required|string|max:1000',
-                'reply_to' => 'nullable|exists:chat_messages,id',
-                'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx'
-            ]);
+            'message' => 'nullable|string|max:1000',
+            'reply_to' => 'nullable|exists:chat_messages,id',
+            'attachment' => 'nullable|file|max:5120', // 5 MB por exemplo
+        ]);
 
+            
             $room = ChatRoom::findOrFail($roomId);
             $user = auth()->user();
             
@@ -105,8 +106,23 @@ class ChatController extends Controller
                 'user_id' => $user->id,
                 'message' => $request->message,
                 'type' => 'text',
-                'reply_to' => $request->reply_to
+                'reply_to' => $request->reply_to,
+                'metadata' => null // inicializa vazio
             ];
+
+            // Verifica se há anexo
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $path = $file->store('chat_attachments', 'public');
+
+            $messageData['type'] = 'file';
+            $messageData['metadata'] = [
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getClientMimeType(),
+                'size' => $file->getSize()
+            ];
+        }
 
             $message = ChatMessage::create($messageData);
             $message->load('user', 'replyTo.user');
