@@ -34,7 +34,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="fw-bold mb-0">{{ $enrolledCourses ?? 5 }}</h3>
+                        <h3 class="fw-bold mb-0">{{ $enrolledCoursesCount ?? 5 }}</h3>
                         <p class="text-muted mb-0">Cursos Matriculados</p>
                     </div>
                 </div>
@@ -111,55 +111,63 @@
             </div>
             <div class="card-body">
                 @php
-                    $currentCourses = [
-                        [
-                            'title' => 'Desenvolvimento Web com Laravel',
-                            'progress' => 75,
-                            'nextLesson' => 'Autenticação e Autorização',
-                            'instructor' => 'Prof. João Silva',
-                            'image' => env('APP_URL') . '/web/img/webp/no-image-available-1by1.webp'
-                        ],
-                        [
-                            'title' => 'JavaScript Avançado',
-                            'progress' => 45,
-                            'nextLesson' => 'Promises e Async/Await',
-                            'instructor' => 'Prof. Maria Santos',
-                            'image' => env('APP_URL') . '/web/img/webp/no-image-available-1by1.webp'
-                        ],
-                        [
-                            'title' => 'Design UI/UX',
-                            'progress' => 30,
-                            'nextLesson' => 'Prototipagem no Figma',
-                            'instructor' => 'Prof. Ana Costa',
-                            'image' => env('APP_URL') . '/web/img/webp/no-image-available-1by1.webp'
-                        ]
-                    ];
+                    // Função auxiliar para calcular a porcentagem de progresso
+                    // Espera: $course->lessons (Collection de todas as aulas do curso)
+                    //         $watchedLessonIds (Collection/array de IDs de aulas assistidas pelo aluno nesse curso)
+                    function courseProgressPercent($course, $watchedLessonIds): int {
+                        $total = isset($course->lessons) ? $course->lessons->count() : 0;
+                        if ($total === 0) {
+                            return 0;
+                        }
+                        $watchedCount = 0;
+                        if (!empty($watchedLessonIds)) {
+                            // Se for Collection, usa count(); se for array, usa count() também.
+                            $watchedCount = is_object($watchedLessonIds) && method_exists($watchedLessonIds, 'count')
+                                ? $watchedLessonIds->count()
+                                : (is_array($watchedLessonIds) ? count($watchedLessonIds) : 0);
+                        }
+                        $percent = (int) floor(($watchedCount / $total) * 100);
+                        return max(0, min(100, $percent));
+                    }
                 @endphp
 
-                @foreach($currentCourses as $course)
-                <div class="d-flex align-items-center mb-3 {{ !$loop->last ? 'border-bottom pb-3' : '' }}">
-                    <img src="{{ $course['image'] }}" alt="{{ $course['title'] }}" class="rounded me-3" width="60" height="60">
-                    <div class="flex-grow-1">
-                        <h6 class="fw-semibold mb-1">{{ $course['title'] }}</h6>
-                        <p class="text-muted small mb-2">{{ $course['instructor'] }}</p>
-                        <div class="d-flex align-items-center">
-                            <div class="course-progress flex-grow-1 me-3">
-                                <div class="progress-bar" style="width: {{ $course['progress'] }}%"></div>
+                @if(isset($enrollments) && $enrollments->count())
+                    @foreach($enrollments as $enrollment)
+                        @php
+                            $course = $enrollment->course;
+                            $progress = courseProgressPercent($course, $enrollment->watchedLessons ?? []);
+                            $image = $course->thumbnail_url ?? (env('APP_URL') . '/web/img/webp/no-image-available-1by1.webp');
+                            $instructorName = $course->instructor->name ?? 'Instrutor';
+                            $nextLessonTitle = $enrollment->nextLesson->title ?? 'Continue de onde parou';
+                        @endphp
+                        <div class="d-flex align-items-center mb-3 {{ !$loop->last ? 'border-bottom pb-3' : '' }}">
+                            <img src="{{ $image }}" alt="{{ $course->title }}" class="rounded me-3" width="60" height="60">
+                            <div class="flex-grow-1">
+                                <h6 class="fw-semibold mb-1">{{ $course->title }}</h6>
+                                <p class="text-muted small mb-2">{{ $instructorName }}</p>
+                                <div class="d-flex align-items-center">
+                                    <div class="course-progress flex-grow-1 me-3">
+                                        <div class="progress-bar" style="width: {{ $progress }}%"></div>
+                                    </div>
+                                    <span class="small text-muted">{{ $progress }}%</span>
+                                </div>
+                                <small class="text-primary">
+                                    <i class="bi bi-play-circle me-1"></i>
+                                    Próxima: {{ $nextLessonTitle }}
+                                </small>
                             </div>
-                            <span class="small text-muted">{{ $course['progress'] }}%</span>
+                            <div class="ms-3">
+                                <a href="#" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-play-fill"></i>
+                                </a>
+                            </div>
                         </div>
-                        <small class="text-primary">
-                            <i class="bi bi-play-circle me-1"></i>
-                            Próxima: {{ $course['nextLesson'] }}
-                        </small>
+                    @endforeach
+                @else
+                    <div class="text-center text-muted py-4">
+                        Nenhum curso em andamento no momento.
                     </div>
-                    <div class="ms-3">
-                        <button class="btn btn-primary btn-sm">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
-                    </div>
-                </div>
-                @endforeach
+                @endif
             </div>
         </div>
     </div>

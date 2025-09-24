@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -30,18 +31,22 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        // Get student statistics
-        $enrolledCourses = 5; // This would come from database
-        $completedCourses = 2;
-        $certificates = 2;
-        $studyHours = 48;
+        // Matrículas do aluno com curso e relacionamentos úteis
+        $enrollments = Enrollment::with(['course', 'student', 'course.instructor'])->get();
 
-        return view('student.dashboard', compact(
-            'enrolledCourses',
-            'completedCourses',
-            'certificates',
-            'studyHours'
-        ));
+        // Get student statistics
+        $enrolledCoursesCount = $enrollments->count();
+        $completedCourses = $enrollments->where('has_certificate', true)->count(); // ou outra regra de "concluído"
+        $certificates = $completedCourses; // ajuste conforme sua regra
+        $studyHours = 0; // ajuste conforme sua lógica
+
+        return view('student.dashboard', [
+            'enrollments' => $enrollments,
+            'enrolledCoursesCount' => $enrolledCoursesCount,
+            'completedCourses' => $completedCourses,
+            'certificates' => $certificates,
+            'studyHours' => $studyHours,
+        ]);
     }
 
     public function markAsRead($id)
@@ -53,7 +58,6 @@ class StudentController extends Controller
 
     return response()->json(['success' => true]);
 }
-
 
     /**
      * Show the student certificates page.
@@ -115,9 +119,9 @@ class StudentController extends Controller
         }
 
         // Estatísticas para o perfil (implementar lógica real depois)
-        $enrolledCourses = 5;
-        $certificates = 2;
-        $studyHours = 48;
+        $enrolledCourses = Enrollment::query()->where('student_id', $student->id)->count();
+        $certificates = Enrollment::query()->where('student_id', $student->id)->where('has_certificate', true)->count();
+        $studyHours = 8;
 
         // Dados do perfil vindos do model student
         $phone = $student->phone;

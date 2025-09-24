@@ -12,11 +12,11 @@ class CourseController extends Controller
     public function index()
     {
         $courses = Course::where('status', 'ativo')->with('instructor')->get();
-        
+
         // Buscar estatísticas para o header
         $totalCourses = Course::where('status', 'ativo')->count();
         $totalStudents = User::where('type', 'aluno')->count();
-        
+
         return view('web.pages.courses.index', compact('courses', 'totalCourses', 'totalStudents'));
     }
 
@@ -24,10 +24,10 @@ class CourseController extends Controller
     {
         $course = Course::with(['instructor', 'modules.lessons'])->findOrFail($id);
         $relatedCourses = Course::where('status', 'ativo')->where('id', '!=', $id)->with('instructor')->limit(4)->get();
-        
+
         // Buscar uma aula gratuita para demonstração
         $demoLesson = null;
-        
+
         // Debug: verificar se o curso tem módulos
         if ($course->modules && $course->modules->count() > 0) {
             foreach ($course->modules as $module) {
@@ -40,7 +40,7 @@ class CourseController extends Controller
                 }
             }
         }
-        
+
         // Debug temporário - remover depois
         // dd([
         //     'course_id' => $course->id,

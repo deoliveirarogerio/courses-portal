@@ -54,7 +54,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Student dashboard routes (protected by auth and user type middleware)
-Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth', 'check.user.type:aluno']], function () {
+Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth', 'check.user.type:aluno,instrutor,admin']], function () {
     Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
     Route::get('/courses', [StudentController::class, 'courses'])->name('courses');
     Route::post('/courses/{id}/enroll', [StudentController::class, 'enrollCourse'])->name('courses.enroll');

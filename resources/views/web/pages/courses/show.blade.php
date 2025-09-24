@@ -361,7 +361,7 @@
 
                                     <div class="row align-items-center mb-4">
                                         <div class="col-md-3 text-center">
-                                            <img src="{{ Storage::url('public/' . $course->instructor->avatar) }}"
+                                            <img src="{{ $course->instructor && $course->instructor->avatar ? \Illuminate\Support\Facades\Storage::url('public/' . $course->instructor->avatar) : asset('web/img/webp/no-avatar-available.webp') }}"
                                                  class="rounded-circle mb-3"
                                                  width="150"
                                                  height="150"
@@ -557,21 +557,18 @@
 
                             @foreach($relatedCourses as $relatedCourse)
                                 <div class="d-flex align-items-center mb-3">
-                                    @if($relatedCourse->image_url)
-                                    <img src="{{ $relatedCourse->image_url }}"
-                                         class="rounded me-3"
-                                         width="80"
-                                         height="60"
-                                         alt="{{ $relatedCourse->title }}">
-                                         @elseif($relatedCourse->image_url == null)
-                                         <img src="{{ asset('web/img/webp/no-image-available-1by1.webp') }}"
-                                         class="rounded me-3"
-                                         width="80"
-                                         height="60"
-                                         alt="{{ $relatedCourse->title }}">
-                                         @endif
+                                    <a href="{{ route('web.courses.details', $relatedCourse->id) }}">
+                                        <img src="{{ $relatedCourse->image
+                                                    ? \Illuminate\Support\Facades\Storage::url('courses/' . $relatedCourse->image)
+                                                    : asset('web/img/webp/no-image-available-16by9.webp') }}"
+                                             class="rounded me-3"
+                                             width="80"
+                                             height="60"
+                                             alt="{{ $relatedCourse->title }}">
+                                    </a>
                                     <div class="flex-grow-1">
-                                        <h6 class="fw-semibold mb-1">{{ $relatedCourse->title }}</h6>
+                                        <h6 class="fw-semibold mb-1"><a href="{{ route('web.courses.details', $relatedCourse->id) }}"
+                                            class="nav-link">{{ $relatedCourse->title }}</a></h6>
                                         <div class="text-warning mb-1">
                                             @for($i = 1; $i <= 5; $i++)
                                                 @if($i <= $relatedCourse->rating)
@@ -673,22 +670,22 @@
                                     @php
                                         $videoUrl = $demoLesson->video_url;
                                         $isYouTube = $videoUrl && (strpos($videoUrl, 'youtube.com') !== false || strpos($videoUrl, 'youtu.be') !== false);
-                                        
+
                                         if ($isYouTube) {
                                             preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)?\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $videoUrl, $matches);
                                             $youtubeId = $matches[1] ?? '';
                                             $embedUrl = "https://www.youtube.com/embed/{$youtubeId}?rel=0&modestbranding=1&showinfo=0";
                                         }
                                     @endphp
-                                    
+
                                     @if($videoUrl)
                                         @if($isYouTube && !empty($youtubeId))
-                                            <iframe 
-                                                class="w-100 p-3" 
-                                                src="{{ $embedUrl }}" 
+                                            <iframe
+                                                class="w-100 p-3"
+                                                src="{{ $embedUrl }}"
                                                 title="Aula Demonstrativa"
-                                                frameborder="0" 
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                                frameborder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                                 allowfullscreen>
                                             </iframe>
                                         @else
@@ -706,7 +703,7 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Lesson Info -->
                             <div class="col-lg-4">
                                 <div class="p-4">
@@ -721,19 +718,19 @@
                                             </small>
                                         @endif
                                     </div>
-                                    
+
                                     @if($demoLesson->description)
                                         <div class="mb-3">
                                             <h6 class="fw-bold">Descrição:</h6>
                                             <p class="text-muted small">{{ $demoLesson->description }}</p>
                                         </div>
                                     @endif
-                                    
+
                                     <div class="mb-3">
                                         <h6 class="fw-bold">Módulo:</h6>
                                         <p class="text-muted small mb-0">{{ $demoLesson->module->title ?? 'Não definido' }}</p>
                                     </div>
-                                    
+
                                     <div class="d-grid gap-2">
                                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#enrollModal" data-bs-dismiss="modal">
                                             <i class="bi bi-cart-plus me-2"></i>Matricular-se Agora
@@ -814,7 +811,7 @@
                     }, 150);
                 });
             });
-            
+
             // Parar vídeo ao fechar modal de demonstração
             const demoModal = document.getElementById('demoModal');
             if (demoModal) {
@@ -826,7 +823,7 @@
                         iframe.src = '';
                         iframe.src = src; // Recarrega o iframe, parando o vídeo
                     }
-                    
+
                     // Parar vídeo HTML5
                     const video = demoModal.querySelector('video');
                     if (video) {

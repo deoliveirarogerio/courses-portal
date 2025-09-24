@@ -32,7 +32,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>Título:</strong> {{ $course->title }}</p>
-                        <p><strong>Instrutor:</strong> {{ $course->instructor ?? 'Não informado' }}</p>
+                        <p><strong>Instrutor:</strong> {{ $course->instructor->name ?? 'Não informado' }}</p>
                         <p><strong>Duração:</strong> {{ $course->duration ?? 'Não informado' }}</p>
                         <p><strong>Nível:</strong> {{ $course->difficulty_level_label }}</p>
                     </div>

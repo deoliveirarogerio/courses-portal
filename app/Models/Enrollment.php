@@ -33,8 +33,8 @@ class Enrollment extends Model
         return $this->hasOne(Payment::class);
     }
 
-    public function user()
+    public function lessons()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(Lesson::class);
     }
 }

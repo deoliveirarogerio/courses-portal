@@ -82,7 +82,7 @@ class User extends Authenticatable
 
     public function enrollments()
     {
-        return $this->hasMany(\App\Models\Enrollment::class);
+        return $this->hasMany(\App\Models\Enrollment::class, 'student_id');
     }
 
     /**

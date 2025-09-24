@@ -20,7 +20,7 @@ class CheckUserType
      * @param  string  $type
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handle(Request $request, Closure $next, string $type): Response
+    public function handle(Request $request, Closure $next, ...$types): Response
     {
         // Verificar se está autenticado
         if (!Auth::check()) {
@@ -34,7 +34,7 @@ class CheckUserType
         Log::info('CheckUserType: Verificando tipo de usuário', [
             'user_id' => $user->id,
             'user_type' => $user->type,
-            'required_type' => $type,
+            'required_type' => $types,
             'route' => $request->route()->getName()
         ]);
 
@@ -53,33 +53,39 @@ class CheckUserType
         // Verificar o tipo de usuário
         $hasAccess = false;
         
-        switch ($type) {
-            case 'admin':
-                $hasAccess = $user->isAdmin();
+        foreach ($types as $type) {
+            switch ($type) {
+                case 'admin':
+                    $hasAccess = $user->isAdmin();
+                    break;
+                
+                case 'aluno':
+                case 'student':
+                    $hasAccess = $user->isAluno();
+                    break;
+                
+                case 'instrutor':
+                case 'instructor':
+                    $hasAccess = $user->isInstrutor();
+                    break;
+                
+                default:
+                    Log::error('CheckUserType: Tipo de usuário não reconhecido no middleware', [
+                        'required_type' => $type
+                    ]);
+                    $hasAccess = false;
+            }
+
+            if ($hasAccess) {
                 break;
-            
-            case 'aluno':
-            case 'student':
-                $hasAccess = $user->isAluno();
-                break;
-            
-            case 'instrutor':
-            case 'instructor':
-                $hasAccess = $user->isInstrutor();
-                break;
-            
-            default:
-                Log::error('CheckUserType: Tipo de usuário não reconhecido no middleware', [
-                    'required_type' => $type
-                ]);
-                $hasAccess = false;
+            }
         }
 
         if (!$hasAccess) {
             Log::warning('CheckUserType: Acesso negado', [
                 'user_id' => $user->id,
                 'user_type' => $user->type,
-                'required_type' => $type,
+                'required_type' => $types,
                 'route' => $request->route()->getName()
             ]);
 
@@ -90,7 +96,7 @@ class CheckUserType
         Log::info('CheckUserType: Acesso permitido', [
             'user_id' => $user->id,
             'user_type' => $user->type,
-            'required_type' => $type
+            'required_type' => $types
         ]);
 
         return $next($request);
