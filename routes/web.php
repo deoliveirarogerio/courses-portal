@@ -54,26 +54,26 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Student dashboard routes (protected by auth and user type middleware)
-Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth', 'check.user.type:aluno,instrutor,admin']], function () {
+Route::group(['prefix' => 'aluno', 'as' => 'student.', 'middleware' => ['auth', 'check.user.type:aluno,instrutor,admin']], function () {
     Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
-    Route::get('/courses', [StudentController::class, 'courses'])->name('courses');
-    Route::post('/courses/{id}/enroll', [StudentController::class, 'enrollCourse'])->name('courses.enroll');
-    Route::get('/certificates', [StudentController::class, 'certificates'])->name('certificates');
-    Route::get('/progress', [StudentController::class, 'progress'])->name('progress');
-    Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
-    Route::get('/courses/{id}/detail', [StudentController::class, 'courseDetail'])->name('course.detail');
+    Route::get('/cursos', [StudentController::class, 'courses'])->name('courses');
+    Route::post('/cursos/{id}/enroll', [StudentController::class, 'enrollCourse'])->name('courses.enroll');
+    Route::get('/certificados', [StudentController::class, 'certificates'])->name('certificates');
+    Route::get('/progresso', [StudentController::class, 'progress'])->name('progress');
+    Route::get('/perfil', [StudentController::class, 'profile'])->name('profile');
+    Route::get('/cursos/{id}/detalhes-do-curso', [StudentController::class, 'courseDetail'])->name('course.detail');
 
     // Profile management
-    Route::post('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/profile/avatar', [StudentController::class, 'updateAvatar'])->name('profile.avatar');
-    Route::post('/profile/change-password', [StudentController::class, 'changePassword'])->name('profile.change-password');
-    Route::post('/profile/notifications', [StudentController::class, 'updateNotifications'])->name('profile.notifications');
-    Route::post('/profile/privacy', [StudentController::class, 'updatePrivacy'])->name('profile.privacy');
+    Route::post('/perfil/update', [StudentController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/perfil/avatar', [StudentController::class, 'updateAvatar'])->name('profile.avatar');
+    Route::post('/perfil/change-password', [StudentController::class, 'changePassword'])->name('profile.change-password');
+    Route::post('/perfil/notifications', [StudentController::class, 'updateNotifications'])->name('profile.notifications');
+    Route::post('/perfil/privacy', [StudentController::class, 'updatePrivacy'])->name('profile.privacy');
 
     // Certificates
-    Route::get('/certificates/{id}/download', [StudentController::class, 'downloadCertificate'])->name('certificates.download');
-    Route::get('/certificates/{id}/view', [StudentController::class, 'viewCertificate'])->name('certificates.view');
-    Route::post('/certificates/verify', [StudentController::class, 'verifyCertificate'])->name('certificates.verify');
+    Route::get('/certificados/{id}/download', [StudentController::class, 'downloadCertificate'])->name('certificates.download');
+    Route::get('/certificados/{id}/view', [StudentController::class, 'viewCertificate'])->name('certificates.view');
+    Route::post('/certificados/verify', [StudentController::class, 'verifyCertificate'])->name('certificates.verify');
 
     // Notificações
     Route::get('/notifications', [StudentNotificationController::class, 'index'])->name('notifications.index');
@@ -81,10 +81,10 @@ Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth'
     Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
     Route::post('/notifications/{id}/mark-as-read', [StudentNotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::post('/notifications/mark-selected-as-read', [StudentNotificationController::class, 'markSelectedAsRead'])->name('notifications.markSelectedAsRead');
-    
+
     // Statistics
     Route::get('/stats', [StudentController::class, 'getStudyStats'])->name('stats');
-    
+
     // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/room/{room}', [ChatController::class, 'show'])->name('chat.room');

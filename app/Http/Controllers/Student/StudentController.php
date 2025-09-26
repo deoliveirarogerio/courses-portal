@@ -66,6 +66,9 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
+        //enrollment = Matricula
+        //has_certificate = tem matricula
+
         // Get certificate statistics
         $totalCertificates = 2;
         $totalDownloads = 8;
@@ -76,7 +79,8 @@ class StudentController extends Controller
             'totalCertificates',
             'totalDownloads',
             'totalShares',
-            'totalHours'
+            'totalHours',
+            'user'
         ));
     }
 
